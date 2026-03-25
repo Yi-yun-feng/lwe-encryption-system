@@ -15,20 +15,20 @@
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
     
     <div class="sidebar" id="sidebar">
+        <a href="index.html">🏠 首页</a>
         <a href="module1_intro.html">📖 平台简介</a>
         <a href="module2_rsa.html">🔑 RSA 算法研究与实验</a>
-        <a href="module3_lwe.html">🌊 LWE-RABE 算法研究（基于博士论文）</a>
+        <a href="module3_lwe.html">🌊 LWE-RABE 算法研究与实验</a>
         <a href="module4_comparison.html">⚖️ 对比分析与结论</a>
         <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 0;">
         <a href="https://github.com/yourusername/rsa-lwe-platform" target="_blank">📦 GitHub 仓库</a>
-        <a href="基于格的可撤销的属性基加密的研究_董星廷.pdf" target="_blank">📄 参考论文</a>
     </div>
     
     <div class="main-content">
         <div class="welcome-card">
-            <h1>🎓 欢迎进入密码学研究平台</h1>
-            <p>本平台基于西安电子科技大学董星廷博士论文《基于格的可撤销的属性基加密的研究》设计，</p>
-            <p>旨在深入对比分析传统公钥加密算法 <strong>RSA</strong> 与后量子加密算法 <strong>LWE-RABE</strong> 的核心原理与实现机制。</p>
+            <h1>🎓 密码学算法对比研究平台</h1>
+            <p>本平台旨在深入对比分析传统公钥加密算法 <strong>RSA</strong> 与后量子加密算法 <strong>LWE-RABE</strong> 的核心原理与实现机制。</p>
+            <p>通过交互式实验环境，帮助学习者理解两种算法的数学基础、安全特性及应用场景。</p>
             
             <div class="module-grid">
                 <a href="module1_intro.html" class="module-card">
@@ -44,13 +44,23 @@
                 <a href="module3_lwe.html" class="module-card highlight">
                     <div class="module-icon">🌊</div>
                     <h3>LWE-RABE 实验</h3>
-                    <p>基于博士论文的可撤销属性基加密</p>
+                    <p>基于格的可撤销属性基加密方案</p>
                 </a>
                 <a href="module4_comparison.html" class="module-card">
                     <div class="module-icon">⚖️</div>
                     <h3>对比分析</h3>
                     <p>算法对比、优劣势、迁移建议</p>
                 </a>
+            </div>
+            
+            <div style="margin-top: 40px; padding: 25px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 12px; text-align: left;">
+                <h3 style="color: #1565c0; margin-bottom: 15px;">📌 平台特色</h3>
+                <ul style="margin-left: 25px; line-height: 2; color: #555;">
+                    <li><strong>交互式实验环境</strong> — 可生成密钥、加解密、观察可视化效果</li>
+                    <li><strong>后量子密码支持</strong> — 集成 LWE-RABE 方案，支持属性基访问控制与用户撤销</li>
+                    <li><strong>过程记录功能</strong> — 支持实验过程保存、加载、导出</li>
+                    <li><strong>多维度对比</strong> — 从安全性、性能、密钥大小等角度全面分析</li>
+                </ul>
             </div>
         </div>
     </div>
