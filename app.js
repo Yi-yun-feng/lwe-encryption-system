@@ -231,4 +231,137 @@ function loadLweProcess() {
 function clearLweProcess() {
     if (confirm('确定要清空实验记录吗？')) {
         document.getElementById('lweProcessRecord').value = '';
-        localStorage.removeItem('
+        localStorage.removeItem('lweProcessRecord');
+        alert('🗑️ 实验记录已清空！');
+    }
+}
+
+// ==================== 工具函数 ====================
+function downloadJSON(data, filename) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importKeysFromFile(callback) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = event => {
+            try {
+                const keys = JSON.parse(event.target.result);
+                callback(keys);
+            } catch (err) { alert('❌ 文件读取失败！'); }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+// ==================== 可视化 ====================
+function updateRsaKeyChart() {
+    const ctx = document.getElementById('rsaKeyChart').getContext('2d');
+    if (rsaKeyChart) rsaKeyChart.destroy();
+    
+    rsaKeyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['1024 位', '2048 位', '3072 位', '4096 位', '7680 位'],
+            datasets: [{
+                label: '预估安全年限',
+                data: [2028, 2035, 2045, 2055, 2070],
+                backgroundColor: ['#f44336', '#ff9800', '#ffc107', '#8bc34a', '#00c853'],
+                borderColor: ['#d32f2f', '#f57c00', '#ffa000', '#689f38', '#009624'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'RSA 密钥长度与安全等级演化趋势' }
+            },
+            scales: {
+                y: { beginAtZero: false, min: 2020, title: { display: true, text: '安全截止年份' } }
+            }
+        }
+    });
+}
+
+function updateLweGaussChart(sigma) {
+    const ctx = document.getElementById('lweGaussChart').getContext('2d');
+    if (lweGaussChart) lweGaussChart.destroy();
+    
+    const data = [], labels = [];
+    for (let x = -5; x <= 5; x += 0.25) {
+        labels.push(x.toFixed(2));
+        const y = (1 / Math.sqrt(2 * Math.PI * sigma * sigma)) * Math.exp(-0.5 * x * x / (sigma * sigma));
+        data.push(y.toFixed(4));
+    }
+    
+    lweGaussChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `高斯分布 (σ=${sigma})`,
+                data: data,
+                borderColor: '#ff6b6b',
+                backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, position: 'top' },
+                title: { display: true, text: 'LWE 噪声分布 (离散高斯)' }
+            },
+            scales: {
+                x: { title: { display: true, text: '噪声值 x' }, grid: { color: '#eee' } },
+                y: { title: { display: true, text: '概率密度' }, grid: { color: '#eee' } }
+            }
+        }
+    });
+}
+
+function generateNoiseVisual() {
+    const container = document.getElementById('noiseVisual');
+    container.innerHTML = '';
+    const sigma = parseFloat(document.getElementById('lweSigma').value) || 2.0;
+    
+    for (let i = 0; i < 60; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'noise-bar';
+        const height = Math.abs(gaussianRandom(0, sigma)) * 4 + 3;
+        bar.style.height = `${Math.min(height, 45)}px`;
+        bar.title = `噪声值：${gaussianRandom(0, sigma).toFixed(2)}`;
+        container.appendChild(bar);
+    }
+}
+
+// ==================== 初始化 ====================
+window.onload = function() {
+    // 恢复 RSA 密钥
+    const rsaPublicKey = localStorage.getItem('rsaPublicKey');
+    const rsaPrivateKey = localStorage.getItem('rsaPrivateKey');
+    if (rsaPublicKey) document.getElementById('rsaPublicKey').value = rsaPublicKey;
+    if (rsaPrivateKey) document.getElementById('rsaPrivateKey').value = rsaPrivateKey;
+    
+    // 初始化图表
+    updateRsaKeyChart();
+    updateLweGaussChart(2.0);
+    generateNoiseVisual();
+};
