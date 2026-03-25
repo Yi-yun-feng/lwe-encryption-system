@@ -3,244 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LWE+RSA 加密系统</title>
+    <title>LWE 加密系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3/bin/jsencrypt.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
-        h1 { text-align: center; color: #333; margin-bottom: 30px; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .algorithm-selector { margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px; }
-        .algorithm-selector label { font-weight: bold; margin-right: 10px; }
-        .algorithm-selector select { padding: 8px 15px; font-size: 16px; border: 2px solid #007bff; border-radius: 5px; }
-        .section { margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff; }
-        .section h3 { margin-bottom: 15px; color: #007bff; }
-        textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: monospace; font-size: 14px; resize: vertical; margin-bottom: 10px; }
-        button { background: #007bff; color: white; border: none; padding: 12px 25px; font-size: 16px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
+        .card { background: white; border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        h2 { color: #555; margin-top: 0; }
+        textarea { width: 100%; height: 100px; margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: monospace; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
         button:hover { background: #0056b3; }
-        .result { background: #e8f5e9; padding: 15px; border-radius: 5px; margin-top: 10px; word-break: break-all; font-family: monospace; font-size: 13px; }
-        .error { background: #ffebee; color: #c62828; }
-        .key-info { background: #fff3e0; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 13px; word-break: break-all; }
+        .key-area { word-break: break-all; font-size: 12px; }
     </style>
 </head>
 <body>
-    <h1>🔐 LWE + RSA 加密系统</h1>
+    <h1>🔐 LWE 加密系统</h1>
     
-    <div class="container">
-        <div class="algorithm-selector">
-            <label>🔑 选择加密算法：</label>
-            <select id="algorithm" onchange="updateUI()">
-                <option value="rsa">RSA（传统加密）</option>
-                <option value="lwe">LWE（后量子加密）</option>
-            </select>
-        </div>
-
-        <div class="section">
-            <h3>📌 第一步：生成密钥对</h3>
-            <button onclick="generateKey()">生成密钥</button>
-            <div id="keyStatus" style="margin-top:10px; color:#666;"></div>
-            <div id="publicKeyInfo" class="key-info" style="display:none;">
-                <strong>✅ 公钥已生成</strong>
-            </div>
-            <div id="secretKeyInfo" class="key-info" style="display:none;">
-                <strong>✅ 私钥已生成</strong>
-            </div>
-        </div>
-
-        <div class="section">
-            <h3>📌 第二步：加密</h3>
-            <textarea id="plainText" placeholder="输入要加密的明文..."></textarea>
-            <button onclick="encrypt()">🔒 加密</button>
-            <div id="encryptResult" class="result" style="display:none;"></div>
-        </div>
-
-        <div class="section">
-            <h3>📌 第三步：解密</h3>
-            <textarea id="cipherText" placeholder="输入要解密的密文..."></textarea>
-            <button onclick="decrypt()">🔓 解密</button>
-            <div id="decryptResult" class="result" style="display:none;"></div>
-        </div>
+    <!-- 密钥管理 -->
+    <div class="card">
+        <h2>🔑 密钥管理</h2>
+        <button onclick="generateKeys()">生成密钥对</button>
+        <button onclick="exportKeys()">📤 导出密钥</button>
+        <button onclick="importKeys()">📥 导入密钥</button>
+        <textarea id="publicKey" class="key-area" placeholder="公钥（自动显示）" readonly></textarea>
+        <textarea id="privateKey" class="key-area" placeholder="私钥（自动显示）" readonly></textarea>
     </div>
-
-    <!-- JSEncrypt 库（用于RSA） -->
-    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3.3.2/bin/jsencrypt.min.js"></script>
     
-    <!-- LWE 算法实现 -->
-    <script>
-    class LWE {
-        constructor(n = 64, q = 997, sigma = 3.0) {
-            this.n = n;
-            this.q = q;
-            this.sigma = sigma;
-        }
-        _gaussianRandom() {
-            let u = 0, v = 0;
-            while(u === 0) u = Math.random();
-            while(v === 0) v = Math.random();
-            return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-        }
-        _sampleError() {
-            return Math.round(this._gaussianRandom() * this.sigma) % this.q;
-        }
-        keyGen() {
-            const s = Array.from({length: this.n}, () => Math.floor(Math.random() * 2));
-            const A = Array.from({length: this.n}, () => 
-                Array.from({length: this.n}, () => Math.floor(Math.random() * this.q))
-            );
-            const e = Array.from({length: this.n}, () => this._sampleError());
-            const b = [];
-            for(let i = 0; i < this.n; i++) {
-                let sum = e[i];
-                for(let j = 0; j < this.n; j++) {
-                    sum += A[i][j] * s[j];
-                }
-                b.push(sum % this.q);
-            }
-            return { publicKey: { A, b }, secretKey: s };
-        }
-        encrypt(publicKey, message) {
-            const { A, b } = publicKey;
-            const r = Array.from({length: this.n}, () => Math.floor(Math.random() * 2));
-            const u = [];
-            for(let j = 0; j < this.n; j++) {
-                let sum = 0;
-                for(let i = 0; i < this.n; i++) {
-                    sum += A[i][j] * r[i];
-                }
-                u.push(sum % this.q);
-            }
-            let v = 0;
-            for(let i = 0; i < this.n; i++) {
-                v += b[i] * r[i];
-            }
-            v = (v + message * Math.floor(this.q / 2)) % this.q;
-            return { u, v };
-        }
-        decrypt(secretKey, ciphertext) {
-            const { u, v } = ciphertext;
-            const s = secretKey;
-            let dotProduct = 0;
-            for(let i = 0; i < this.n; i++) {
-                dotProduct += s[i] * u[i];
-            }
-            let val = (v - dotProduct) % this.q;
-            if(val < 0) val += this.q;
-            if(val > this.q / 4 && val < 3 * this.q / 4) {
-                return 1;
-            }
-            return 0;
-        }
-        encryptString(publicKey, text) {
-            const bytes = new TextEncoder().encode(text);
-            const encrypted = Array.from(bytes).map(b => this.encrypt(publicKey, b));
-            return JSON.stringify(encrypted);
-        }
-        decryptString(secretKey, encryptedJson) {
-            const encrypted = JSON.parse(encryptedJson);
-            const bytes = encrypted.map(c => this.decrypt(secretKey, c));
-            return new TextDecoder().decode(new Uint8Array(bytes));
-        }
-    }
-    </script>
+    <!-- 加密 -->
+    <div class="card">
+        <h2>🔒 加密</h2>
+        <textarea id="encryptInput" placeholder="输入要加密的明文"></textarea>
+        <button onclick="encrypt()">加密</button>
+        <textarea id="encryptOutput" placeholder="加密后的密文" readonly></textarea>
+    </div>
     
-    <!-- 主逻辑 -->
-    <script>
-    let currentAlgorithm = 'rsa';
-    let rsaCrypt = null;
-    let lwe = null;
-    let lweKeys = null;
-
-    function updateUI() {
-        currentAlgorithm = document.getElementById('algorithm').value;
-        document.getElementById('encryptResult').style.display = 'none';
-        document.getElementById('decryptResult').style.display = 'none';
-        document.getElementById('keyStatus').textContent = '⚠️ 请重新生成密钥（已切换算法）';
-        document.getElementById('keyStatus').style.color = '#666';
-        document.getElementById('publicKeyInfo').style.display = 'none';
-        document.getElementById('secretKeyInfo').style.display = 'none';
-        rsaCrypt = null;
-        lweKeys = null;
-    }
-
-    function generateKey() {
-        const statusDiv = document.getElementById('keyStatus');
-        const pubInfo = document.getElementById('publicKeyInfo');
-        const secInfo = document.getElementById('secretKeyInfo');
-        
-        if(currentAlgorithm === 'rsa') {
-            if(typeof JSEncrypt === 'undefined') {
-                statusDiv.textContent = '❌ JSEncrypt 库加载失败，请检查网络';
-                statusDiv.style.color = 'red';
-                return;
-            }
-            rsaCrypt = new JSEncrypt();
-            rsaCrypt.getKey(() => {
-                statusDiv.textContent = '✅ RSA 密钥对生成成功！';
-                statusDiv.style.color = 'green';
-                pubInfo.style.display = 'block';
-                secInfo.style.display = 'block';
-            });
-        } else {
-            lwe = new LWE(64, 997, 3.0);
-            lweKeys = lwe.keyGen();
-            statusDiv.textContent = '✅ LWE 密钥对生成成功！';
-            statusDiv.style.color = 'green';
-            pubInfo.style.display = 'block';
-            secInfo.style.display = 'block';
-        }
-    }
-
-    function encrypt() {
-        const text = document.getElementById('plainText').value;
-        if(!text) { alert('⚠️ 请输入要加密的内容！'); return; }
-        const resultDiv = document.getElementById('encryptResult');
-        try {
-            if(currentAlgorithm === 'rsa') {
-                if(!rsaCrypt) { alert('⚠️ 请先生成密钥！'); return; }
-                const encrypted = rsaCrypt.encrypt(text);
-                resultDiv.textContent = encrypted;
-            } else {
-                if(!lweKeys) { alert('⚠️ 请先生成密钥！'); return; }
-                const encrypted = lwe.encryptString(lweKeys.publicKey, text);
-                resultDiv.textContent = encrypted;
-            }
-            resultDiv.style.display = 'block';
-            resultDiv.classList.remove('error');
-        } catch(e) {
-            resultDiv.textContent = '❌ 错误：' + e.message;
-            resultDiv.classList.add('error');
-            resultDiv.style.display = 'block';
-        }
-    }
-
-    function decrypt() {
-        const text = document.getElementById('cipherText').value;
-        if(!text) { alert('⚠️ 请输入要解密的内容！'); return; }
-        const resultDiv = document.getElementById('decryptResult');
-        try {
-            if(currentAlgorithm === 'rsa') {
-                if(!rsaCrypt) { alert('⚠️ 请先生成密钥！'); return; }
-                const decrypted = rsaCrypt.decrypt(text);
-                resultDiv.textContent = decrypted;
-            } else {
-                if(!lweKeys) { alert('⚠️ 请先生成密钥！'); return; }
-                const decrypted = lwe.decryptString(lweKeys.secretKey, text);
-                resultDiv.textContent = decrypted;
-            }
-            resultDiv.style.display = 'block';
-            resultDiv.classList.remove('error');
-        } catch(e) {
-            resultDiv.textContent = '❌ 错误：' + e.message;
-            resultDiv.classList.add('error');
-            resultDiv.style.display = 'block';
-        }
-    }
-    </script>
+    <!-- 解密 -->
+    <div class="card">
+        <h2>🔓 解密</h2>
+        <textarea id="decryptInput" placeholder="粘贴加密后的密文"></textarea>
+        <button onclick="decrypt()">解密</button>
+        <textarea id="decryptOutput" placeholder="解密结果" readonly></textarea>
+    </div>
+    
+    <script src="app.js"></script>
 </body>
 </html>
-<!-- 解密区域 -->
-<div class="card">
-    <h2>🔓 解密</h2>
-    <textarea id="decryptInput" placeholder="粘贴加密后的密文"></textarea>
-    <button onclick="decrypt()">解密</button>
-    <textarea id="decryptOutput" placeholder="解密结果" readonly></textarea>
-</div>
