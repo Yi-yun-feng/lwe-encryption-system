@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSA 算法 - RSA vs LWE 研究平台</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3/bin/jsencrypt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <span class="logo">🔐 <span>RSA</span> vs <span>LWE-RABE</span> 研究平台</span>
+    </nav>
+    
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <a href="index.html">🏠 返回首页</a>
+        <a href="module1_intro.html">📖 平台简介</a>
+        <a href="module2_rsa.html">🔑 RSA 算法研究与实验</a>
+        <a href="module3_lwe.html">🌊 LWE-RABE 算法研究</a>
+        <a href="module4_comparison.html">⚖️ 对比分析与结论</a>
+    </div>
+    
+    <div class="main-content">
+        <div class="module module-rsa">
+            <h1>🔑 RSA 算法研究与实验</h1>
+            <span class="badge badge-rsa">非对称加密</span>
+            <span class="badge badge-warning">不抗量子</span>
+            <span class="badge">Rivest-Shamir-Adleman, 1977</span>
+            
+            <h2>📌 算法原理</h2>
+            <p>RSA 是最早实用化的公钥加密算法，其安全性基于<strong>大整数分解问题</strong>的计算困难性。</p>
+            
+            <div class="formula-box">
+                <p><strong>【密钥生成】</strong></p>
+                <p>1. 选择两个大质数 p, q</p>
+                <p>2. 计算 n = p × q</p>
+                <p>3. 计算 φ(n) = (p-1)(q-1)</p>
+                <p>4. 选择 e (1 &lt; e &lt; φ(n), gcd(e,φ(n))=1)</p>
+                <p>5. 计算 d = e⁻¹ mod φ(n)</p>
+                <p><strong>公钥：</strong>(e, n) &nbsp;&nbsp;&nbsp; <strong>私钥：</strong>(d, n)</p>
+                <br>
+                <p><strong>【加密】</strong> c = m^e mod n</p>
+                <p><strong>【解密】</strong> m = c^d mod n</p>
+            </div>
+            
+            <h2>🧪 加解密实验台</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>🔑 密钥管理</h3>
+                    <button class="btn btn-primary" onclick="rsaGenerateKeys()">生成密钥对</button>
+                    <button class="btn btn-success" onclick="rsaExportKeys()">📤 导出</button>
+                    <button class="btn btn-warning" onclick="rsaImportKeys()">📥 导入</button>
+                    <textarea id="rsaPublicKey" placeholder="公钥" readonly></textarea>
+                    <textarea id="rsaPrivateKey" placeholder="私钥" readonly></textarea>
+                </div>
+                <div>
+                    <h3>🔐 加密 / 🔓 解密</h3>
+                    <textarea id="rsaEncryptInput" placeholder="输入明文"></textarea>
+                    <button class="btn btn-primary" onclick="rsaEncrypt()">🔒 加密</button>
+                    <textarea id="rsaEncryptOutput" placeholder="密文" readonly></textarea>
+                    <textarea id="rsaDecryptInput" placeholder="粘贴密文"></textarea>
+                    <button class="btn btn-success" onclick="rsaDecrypt()">🔓 解密</button>
+                    <textarea id="rsaDecryptOutput" placeholder="解密结果" readonly></textarea>
+                </div>
+            </div>
+            
+            <h2>📊 可视化分析</h2>
+            <div class="chart-container">
+                <canvas id="rsaKeyChart"></canvas>
+            </div>
+            
+            <div class="process-section">
+                <h3>📝 实验过程记录</h3>
+                <textarea id="rsaProcessRecord" placeholder="记录你的 RSA 实验过程..."></textarea>
+                <button class="btn btn-primary" onclick="saveRsaProcess()">💾 保存</button>
+                <button class="btn btn-success" onclick="loadRsaProcess()">📂 加载</button>
+                <button class="btn btn-danger" onclick="clearRsaProcess()">🗑️ 清空</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
