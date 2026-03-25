@@ -1,41 +1,23 @@
----
+```markdown
 layout: default
-title: Docs
+title: 文档
 nav_order: 2
 has_children: true
 permalink: /docs/
----
-
-# Documentation
-
-Welcome to the JSEncrypt documentation! Here you'll find everything you need to integrate RSA encryption into your JavaScript applications.
-
-## Overview
-
-JSEncrypt is a JavaScript library that provides a simple interface for RSA encryption and decryption using OpenSSL-compatible key formats. It's built on top of the proven [jsbn library](http://www-cs-students.stanford.edu/~tjw/jsbn/) by Tom Wu.
-
-## What You'll Learn
-
-- **[Getting Started](getting-started/)** - Install and set up JSEncrypt
-- **[API Reference](api/)** - Complete API documentation  
-- **[Examples](examples/)** - Real-world usage examples
-- **[Key Management](key-management/)** - Working with RSA keys
-- **[Security Best Practices](security/)** - Keep your implementations secure
-
-## Quick Navigation
-
-<div class="code-example" markdown="1">
-New to JSEncrypt? Start with our [Getting Started Guide](getting-started/).
-
-Looking for specific methods? Check the [API Reference](api/).
-
-Want to see examples? Browse our [Examples](examples/) section.
-</div>
-
----
-
-## Need Help?
-
-- 🐛 **Found a bug?** [Report it on GitHub](https://github.com/travist/jsencrypt/issues)
-- 💡 **Have a question?** [Start a discussion](https://github.com/travist/jsencrypt/discussions)  
-- 📚 **Want to contribute?** See our [Contributing Guide](https://github.com/travist/jsencrypt/blob/master/CONTRIBUTING.md)
+RSA+LWE 加密对比系统 文档
+欢迎使用 RSA+LWE 加密对比系统！这里你将找到关于传统 RSA 加密和后量子 LWE 加密的完整文档。
+概述
+本系统对比分析了传统 RSA 加密算法与后量子 LWE 加密算法的性能、安全性和适用场景，帮助开发者理解两种加密方案的优劣。
+文档目录
+快速开始 - 安装和配置系统
+API 参考 - 完整的 API 文档
+使用示例 - 实际使用案例
+密钥管理 - RSA 和 LWE 密钥管理
+安全分析 - 安全性对比与最佳实践
+快速导航
+查找特定接口？查看 API 参考。
+想看示例代码？浏览 使用示例 部分。
+需要帮助？
+🐛 发现 Bug？ 在 GitHub 上报告
+💡 有问题？ 发起讨论
+📚 想贡献？ 查看 贡献指南
