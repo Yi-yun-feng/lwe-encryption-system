@@ -26,7 +26,6 @@
     <h1>🔐 LWE + RSA 加密系统</h1>
     
     <div class="container">
-        <!-- 算法选择 -->
         <div class="algorithm-selector">
             <label>🔑 选择加密算法：</label>
             <select id="algorithm" onchange="updateUI()">
@@ -35,7 +34,6 @@
             </select>
         </div>
 
-        <!-- 密钥生成 -->
         <div class="section">
             <h3>📌 第一步：生成密钥对</h3>
             <button onclick="generateKey()">生成密钥</button>
@@ -48,7 +46,6 @@
             </div>
         </div>
 
-        <!-- 加密 -->
         <div class="section">
             <h3>📌 第二步：加密</h3>
             <textarea id="plainText" placeholder="输入要加密的明文..."></textarea>
@@ -56,7 +53,6 @@
             <div id="encryptResult" class="result" style="display:none;"></div>
         </div>
 
-        <!-- 解密 -->
         <div class="section">
             <h3>📌 第三步：解密</h3>
             <textarea id="cipherText" placeholder="输入要解密的密文..."></textarea>
@@ -65,11 +61,179 @@
         </div>
     </div>
 
-    <!-- 引入 RSA 库 -->
-    <script src="jsencrypt.min.js"></script>
-    <!-- 引入 LWE JS 实现 -->
-    <script src="lwe.js"></script>
+    <!-- JSEncrypt 库（用于RSA） -->
+    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3.3.2/bin/jsencrypt.min.js"></script>
+    
+    <!-- LWE 算法实现 -->
+    <script>
+    class LWE {
+        constructor(n = 64, q = 997, sigma = 3.0) {
+            this.n = n;
+            this.q = q;
+            this.sigma = sigma;
+        }
+        _gaussianRandom() {
+            let u = 0, v = 0;
+            while(u === 0) u = Math.random();
+            while(v === 0) v = Math.random();
+            return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        }
+        _sampleError() {
+            return Math.round(this._gaussianRandom() * this.sigma) % this.q;
+        }
+        keyGen() {
+            const s = Array.from({length: this.n}, () => Math.floor(Math.random() * 2));
+            const A = Array.from({length: this.n}, () => 
+                Array.from({length: this.n}, () => Math.floor(Math.random() * this.q))
+            );
+            const e = Array.from({length: this.n}, () => this._sampleError());
+            const b = [];
+            for(let i = 0; i < this.n; i++) {
+                let sum = e[i];
+                for(let j = 0; j < this.n; j++) {
+                    sum += A[i][j] * s[j];
+                }
+                b.push(sum % this.q);
+            }
+            return { publicKey: { A, b }, secretKey: s };
+        }
+        encrypt(publicKey, message) {
+            const { A, b } = publicKey;
+            const r = Array.from({length: this.n}, () => Math.floor(Math.random() * 2));
+            const u = [];
+            for(let j = 0; j < this.n; j++) {
+                let sum = 0;
+                for(let i = 0; i < this.n; i++) {
+                    sum += A[i][j] * r[i];
+                }
+                u.push(sum % this.q);
+            }
+            let v = 0;
+            for(let i = 0; i < this.n; i++) {
+                v += b[i] * r[i];
+            }
+            v = (v + message * Math.floor(this.q / 2)) % this.q;
+            return { u, v };
+        }
+        decrypt(secretKey, ciphertext) {
+            const { u, v } = ciphertext;
+            const s = secretKey;
+            let dotProduct = 0;
+            for(let i = 0; i < this.n; i++) {
+                dotProduct += s[i] * u[i];
+            }
+            let val = (v - dotProduct) % this.q;
+            if(val < 0) val += this.q;
+            if(val > this.q / 4 && val < 3 * this.q / 4) {
+                return 1;
+            }
+            return 0;
+        }
+        encryptString(publicKey, text) {
+            const bytes = new TextEncoder().encode(text);
+            const encrypted = Array.from(bytes).map(b => this.encrypt(publicKey, b));
+            return JSON.stringify(encrypted);
+        }
+        decryptString(secretKey, encryptedJson) {
+            const encrypted = JSON.parse(encryptedJson);
+            const bytes = encrypted.map(c => this.decrypt(secretKey, c));
+            return new TextDecoder().decode(new Uint8Array(bytes));
+        }
+    }
+    </script>
+    
     <!-- 主逻辑 -->
-    <script src="app.js"></script>
+    <script>
+    let currentAlgorithm = 'rsa';
+    let rsaCrypt = null;
+    let lwe = null;
+    let lweKeys = null;
+
+    function updateUI() {
+        currentAlgorithm = document.getElementById('algorithm').value;
+        document.getElementById('encryptResult').style.display = 'none';
+        document.getElementById('decryptResult').style.display = 'none';
+        document.getElementById('keyStatus').textContent = '⚠️ 请重新生成密钥（已切换算法）';
+        document.getElementById('keyStatus').style.color = '#666';
+        document.getElementById('publicKeyInfo').style.display = 'none';
+        document.getElementById('secretKeyInfo').style.display = 'none';
+        rsaCrypt = null;
+        lweKeys = null;
+    }
+
+    function generateKey() {
+        const statusDiv = document.getElementById('keyStatus');
+        const pubInfo = document.getElementById('publicKeyInfo');
+        const secInfo = document.getElementById('secretKeyInfo');
+        
+        if(currentAlgorithm === 'rsa') {
+            if(typeof JSEncrypt === 'undefined') {
+                statusDiv.textContent = '❌ JSEncrypt 库加载失败，请检查网络';
+                statusDiv.style.color = 'red';
+                return;
+            }
+            rsaCrypt = new JSEncrypt();
+            rsaCrypt.getKey(() => {
+                statusDiv.textContent = '✅ RSA 密钥对生成成功！';
+                statusDiv.style.color = 'green';
+                pubInfo.style.display = 'block';
+                secInfo.style.display = 'block';
+            });
+        } else {
+            lwe = new LWE(64, 997, 3.0);
+            lweKeys = lwe.keyGen();
+            statusDiv.textContent = '✅ LWE 密钥对生成成功！';
+            statusDiv.style.color = 'green';
+            pubInfo.style.display = 'block';
+            secInfo.style.display = 'block';
+        }
+    }
+
+    function encrypt() {
+        const text = document.getElementById('plainText').value;
+        if(!text) { alert('⚠️ 请输入要加密的内容！'); return; }
+        const resultDiv = document.getElementById('encryptResult');
+        try {
+            if(currentAlgorithm === 'rsa') {
+                if(!rsaCrypt) { alert('⚠️ 请先生成密钥！'); return; }
+                const encrypted = rsaCrypt.encrypt(text);
+                resultDiv.textContent = encrypted;
+            } else {
+                if(!lweKeys) { alert('⚠️ 请先生成密钥！'); return; }
+                const encrypted = lwe.encryptString(lweKeys.publicKey, text);
+                resultDiv.textContent = encrypted;
+            }
+            resultDiv.style.display = 'block';
+            resultDiv.classList.remove('error');
+        } catch(e) {
+            resultDiv.textContent = '❌ 错误：' + e.message;
+            resultDiv.classList.add('error');
+            resultDiv.style.display = 'block';
+        }
+    }
+
+    function decrypt() {
+        const text = document.getElementById('cipherText').value;
+        if(!text) { alert('⚠️ 请输入要解密的内容！'); return; }
+        const resultDiv = document.getElementById('decryptResult');
+        try {
+            if(currentAlgorithm === 'rsa') {
+                if(!rsaCrypt) { alert('⚠️ 请先生成密钥！'); return; }
+                const decrypted = rsaCrypt.decrypt(text);
+                resultDiv.textContent = decrypted;
+            } else {
+                if(!lweKeys) { alert('⚠️ 请先生成密钥！'); return; }
+                const decrypted = lwe.decryptString(lweKeys.secretKey, text);
+                resultDiv.textContent = decrypted;
+            }
+            resultDiv.style.display = 'block';
+            resultDiv.classList.remove('error');
+        } catch(e) {
+            resultDiv.textContent = '❌ 错误：' + e.message;
+            resultDiv.classList.add('error');
+            resultDiv.style.display = 'block';
+        }
+    }
+    </script>
 </body>
 </html>
