@@ -3,694 +3,772 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LWE 加密系统 | 对比 RSA</title>
-    <!-- 引入 Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 Font Awesome (三条杠导航图标) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入 Chart.js (可视化高斯分布/加解密流程) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-    <!-- 自定义 Tailwind 配置 -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#165DFF',
-                        secondary: '#6B7280',
-                        lwe: '#2563EB',
-                        rsa: '#DC2626',
-                        neutral: '#F3F4F6'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                }
-            }
+    <title>RSA vs LWE 加密对比平台</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3/bin/jsencrypt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; min-height: 100vh; }
+        
+        /* ===== 顶部导航栏 ===== */
+        .navbar { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 60px; 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+            display: flex; 
+            align-items: center; 
+            padding: 0 20px; 
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-    </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .content-auto {
-                content-visibility: auto;
-            }
-            .sidebar-active {
-                @apply bg-primary/10 text-primary border-l-4 border-primary;
-            }
-            .step-item {
-                @apply py-2 px-4 rounded-lg border border-gray-200 mb-2 transition-all hover:shadow-md;
-            }
-            .form-input-custom {
-                @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary;
-            }
+        .menu-btn { 
+            font-size: 24px; 
+            color: white; 
+            cursor: pointer; 
+            padding: 10px; 
+            background: none; 
+            border: none; 
+            transition: transform 0.3s;
+        }
+        .menu-btn:hover { transform: scale(1.1); }
+        .logo { 
+            color: white; 
+            font-size: 20px; 
+            font-weight: bold; 
+            margin-left: 20px; 
+        }
+        .logo span { color: #00d9ff; }
+        
+        /* ===== 侧边导航菜单 ===== */
+        .sidebar { 
+            position: fixed; 
+            top: 60px; 
+            left: -300px; 
+            width: 300px; 
+            height: calc(100vh - 60px); 
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); 
+            transition: left 0.3s ease; 
+            z-index: 999; 
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+        }
+        .sidebar.active { left: 0; }
+        .sidebar a { 
+            display: block; 
+            color: #ccc; 
+            padding: 18px 25px; 
+            text-decoration: none; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            transition: all 0.3s;
+            font-size: 15px;
+        }
+        .sidebar a:hover { 
+            background: rgba(0,217,255,0.2); 
+            color: #00d9ff;
+            padding-left: 30px;
+        }
+        .sidebar a::before {
+            content: '▸ ';
+            color: #00d9ff;
+        }
+        .sidebar .section-title {
+            color: #00d9ff;
+            padding: 15px 25px 5px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* ===== 主内容区 ===== */
+        .main-content { 
+            margin-top: 60px; 
+            padding: 30px; 
+            max-width: 1400px; 
+            margin-left: auto; 
+            margin-right: auto; 
+        }
+        
+        /* ===== 卡片样式 ===== */
+        .card { 
+            background: white; 
+            border-radius: 15px; 
+            padding: 30px; 
+            margin: 25px 0; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-left: 5px solid #00d9ff;
+        }
+        .card.lwe-card { border-left-color: #ff6b6b; }
+        .card h2 { 
+            color: #1a1a2e; 
+            margin-bottom: 20px; 
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        .card h3 { 
+            color: #16213e; 
+            margin: 20px 0 12px; 
+            font-size: 18px;
+        }
+        .card p { line-height: 1.8; color: #555; margin: 10px 0; }
+        
+        /* ===== 按钮样式 ===== */
+        .btn { 
+            padding: 12px 25px; 
+            margin: 5px; 
+            cursor: pointer; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            font-weight: 600;
+            transition: all 0.3s; 
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, #00d9ff, #0099cc); 
+            color: white; 
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(0,217,255,0.4); 
+        }
+        .btn-success { 
+            background: linear-gradient(135deg, #00c853, #009624); 
+            color: white; 
+        }
+        .btn-warning { 
+            background: linear-gradient(135deg, #ff9800, #f57c00); 
+            color: white; 
+        }
+        .btn-danger { 
+            background: linear-gradient(135deg, #f44336, #d32f2f); 
+            color: white; 
+        }
+        
+        /* ===== 文本框 ===== */
+        textarea { 
+            width: 100%; 
+            height: 100px; 
+            margin: 12px 0; 
+            padding: 15px; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 8px; 
+            font-family: 'Courier New', monospace; 
+            font-size: 13px; 
+            resize: vertical; 
+            transition: all 0.3s; 
+        }
+        textarea:focus { 
+            outline: none; 
+            border-color: #00d9ff; 
+            box-shadow: 0 0 10px rgba(0,217,255,0.2);
+        }
+        input[type="number"] {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            width: 80px;
+            margin: 5px;
+        }
+        
+        /* ===== 网格布局 ===== */
+        .grid-2 { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 25px; 
+        }
+        .grid-3 { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 25px; 
+        }
+        
+        /* ===== 对比表格 ===== */
+        .comparison-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+        }
+        .comparison-table th, 
+        .comparison-table td { 
+            padding: 15px; 
+            text-align: left; 
+            border-bottom: 1px solid #eee; 
+        }
+        .comparison-table th { 
+            background: linear-gradient(135deg, #1a1a2e, #16213e); 
+            color: white; 
+        }
+        .comparison-table tr:hover { 
+            background: #f8f9fa; 
+        }
+        
+        /* ===== 流程图 ===== */
+        .flow-chart { 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center; 
+            margin: 25px 0; 
+            flex-wrap: wrap; 
+            gap: 15px;
+        }
+        .flow-step { 
+            background: linear-gradient(135deg, #00d9ff, #0099cc); 
+            color: white; 
+            padding: 20px 25px; 
+            border-radius: 10px; 
+            text-align: center; 
+            min-width: 130px;
+            box-shadow: 0 3px 10px rgba(0,217,255,0.3);
+        }
+        .flow-step.lwe { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); }
+        .flow-arrow { 
+            font-size: 28px; 
+            color: #1a1a2e; 
+            font-weight: bold;
+        }
+        
+        /* ===== 高斯分布图 ===== */
+        .chart-container { 
+            position: relative; 
+            height: 300px; 
+            margin: 20px 0; 
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        /* ===== 标签 ===== */
+        .badge { 
+            display: inline-block; 
+            padding: 6px 15px; 
+            border-radius: 20px; 
+            font-size: 13px; 
+            margin: 3px; 
+            font-weight: 600;
+        }
+        .badge-rsa { background: #00d9ff; color: white; }
+        .badge-lwe { background: #ff6b6b; color: white; }
+        .badge-warning { background: #ff9800; color: white; }
+        .badge-success { background: #00c853; color: white; }
+        
+        /* ===== 噪声可视化 ===== */
+        .noise-visual { 
+            display: flex; 
+            gap: 3px; 
+            height: 60px; 
+            align-items: flex-end; 
+            margin: 15px 0; 
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .noise-bar { 
+            flex: 1; 
+            background: linear-gradient(to top, #00d9ff, #ff6b6b); 
+            border-radius: 3px 3px 0 0; 
+            transition: height 0.3s;
+        }
+        
+        /* ===== 公式框 ===== */
+        .formula-box { 
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef); 
+            padding: 20px; 
+            border-radius: 10px; 
+            font-family: 'Courier New', monospace; 
+            font-size: 14px;
+            border-left: 4px solid #00d9ff;
+            margin: 15px 0;
+        }
+        .formula-box.lwe { border-left-color: #ff6b6b; }
+        
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .flow-chart { flex-direction: column; }
+            .flow-arrow { transform: rotate(90deg); margin: 10px 0; }
+            .sidebar { width: 260px; }
+        }
+        
+        /* ===== 动画 ===== */
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(30px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .card { animation: fadeIn 0.6s ease-out; }
+        
+        /* ===== 遮罩层 ===== */
+        .overlay {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            background: rgba(0,0,0,0.5);
+            z-index: 998;
+            display: none;
+        }
+        .overlay.active { display: block; }
+        
+        /* ===== 用户输入区 ===== */
+        .user-input-section {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .user-input-section h4 {
+            color: #856404;
+            margin-bottom: 10px;
         }
     </style>
 </head>
-<body class="bg-gray-50 font-sans">
-    <!-- 侧边导航栏 -->
-    <div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-30">
-        <div class="p-4 border-b border-gray-200">
-            <h1 class="text-xl font-bold text-primary">LWE 加密系统</h1>
-            <p class="text-sm text-secondary mt-1">轻量级加密对比平台</p>
-        </div>
-        <nav class="mt-4">
-            <a href="#intro" class="block py-3 px-4 hover:bg-gray-100 transition-colors sidebar-active">
-                <i class="fas fa-home mr-2"></i>平台简介
-            </a>
-            <a href="#rsa-intro" class="block py-3 px-4 hover:bg-gray-100 transition-colors">
-                <i class="fas fa-key mr-2 text-rsa"></i>RSA 加密
-            </a>
-            <a href="#lwe-intro" class="block py-3 px-4 hover:bg-gray-100 transition-colors">
-                <i class="fas fa-shield-halved mr-2 text-lwe"></i>LWE 加密
-            </a>
-            <a href="#encrypt-decrypt" class="block py-3 px-4 hover:bg-gray-100 transition-colors">
-                <i class="fas fa-lock mr-2"></i>加解密实操
-            </a>
-            <a href="#comparison" class="block py-3 px-4 hover:bg-gray-100 transition-colors">
-                <i class="fas fa-table mr-2"></i>加密算法对比
-            </a>
-            <a href="#visualization" class="block py-3 px-4 hover:bg-gray-100 transition-colors">
-                <i class="fas fa-chart-line mr-2"></i>流程/分布可视化
-            </a>
-        </nav>
+<body>
+
+    <!-- ===== 顶部导航栏 ===== -->
+    <nav class="navbar">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <span class="logo">🔐 <span>RSA</span> vs <span>LWE</span></span>
+    </nav>
+    
+    <!-- ===== 遮罩层 ===== -->
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    
+    <!-- ===== 侧边导航菜单 ===== -->
+    <div class="sidebar" id="sidebar">
+        <div class="section-title">导航菜单</div>
+        <a href="#intro" onclick="toggleSidebar()">📖 Web 平台简介</a>
+        <a href="#rsa-intro" onclick="toggleSidebar()">🔑 RSA 算法介绍</a>
+        <a href="#rsa-demo" onclick="toggleSidebar()">🔒 RSA 加解密 UI</a>
+        <a href="#rsa-process" onclick="toggleSidebar()">📝 RSA 加解密过程</a>
+        <a href="#lwe-intro" onclick="toggleSidebar()">🌊 LWE 算法介绍</a>
+        <a href="#lwe-demo" onclick="toggleSidebar()">🌊 LWE 加解密 UI</a>
+        <a href="#lwe-process" onclick="toggleSidebar()">📝 LWE 加解密过程</a>
+        <a href="#visualization" onclick="toggleSidebar()">📊 可视化展示</a>
+        <a href="#comparison" onclick="toggleSidebar()">⚖️ 对比分析</a>
     </div>
-
-    <!-- 遮罩层 (移动端侧边栏展开时) -->
-    <div id="overlay" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden" onclick="toggleSidebar()"></div>
-
-    <!-- 顶部导航 (汉堡菜单 + 标题) -->
-    <header class="fixed top-0 left-0 right-0 bg-white shadow-sm z-10 md:pl-64">
-        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-            <!-- 汉堡菜单按钮 -->
-            <button id="menu-btn" class="md:hidden text-gray-700 hover:text-primary transition-colors" onclick="toggleSidebar()">
-                <i class="fas fa-bars text-xl"></i>
-            </button>
-            <h2 class="text-lg font-semibold text-gray-800">LWE & RSA 加密对比平台</h2>
-            <div class="hidden md:block"></div>
+    
+    <!-- ===== 主内容区 ===== -->
+    <div class="main-content">
+        
+        <!-- ===== 1. Web 平台简介 ===== -->
+        <div class="card" id="intro">
+            <h2>📖 Web 平台简介</h2>
+            <p>本平台是一个交互式密码学学习平台，用于对比分析 <span class="badge badge-rsa">RSA 加密算法</span> 和 <span class="badge badge-lwe">LWE 加密算法</span>。</p>
+            <br>
+            <div class="grid-3">
+                <div style="text-align: center; padding: 25px; background: #f8f9fa; border-radius: 10px;">
+                    <div style="font-size: 50px;">🔐</div>
+                    <h3 style="margin-top: 15px;">传统加密</h3>
+                    <p style="font-size: 14px;">RSA 基于大数分解难题，已使用 40+ 年，广泛应用于 HTTPS、数字签名等场景</p>
+                </div>
+                <div style="text-align: center; padding: 25px; background: #f8f9fa; border-radius: 10px;">
+                    <div style="font-size: 50px;">🌊</div>
+                    <h3 style="margin-top: 15px;">后量子加密</h3>
+                    <p style="font-size: 14px;">LWE 基于格问题，抗量子计算机攻击，是 NIST 后量子密码标准候选算法</p>
+                </div>
+                <div style="text-align: center; padding: 25px; background: #f8f9fa; border-radius: 10px;">
+                    <div style="font-size: 50px;">⚖️</div>
+                    <h3 style="margin-top: 15px;">对比分析</h3>
+                    <p style="font-size: 14px;">直观对比两种算法的安全性、性能、密钥大小等关键指标</p>
+                </div>
+            </div>
+            <br>
+            <p><strong>🎯 平台功能：</strong></p>
+            <ul style="margin-left: 25px; margin-top: 10px; line-height: 2;">
+                <li>✅ 完整的 RSA 加解密演示（使用 JSEncrypt 库）</li>
+                <li>✅ LWE 加解密模拟演示（教学用途）</li>
+                <li>✅ 高斯噪声分布可视化</li>
+                <li>✅ 两种算法的详细对比分析</li>
+                <li>✅ 密钥导出/导入功能</li>
+            </ul>
         </div>
-    </header>
-
-    <!-- 主内容区 -->
-    <main class="pt-16 md:pl-64 min-h-screen pb-10">
-        <div class="container mx-auto px-4 py-6">
-            <!-- 1. 平台简介 -->
-            <section id="intro" class="mb-10 bg-white rounded-xl shadow-sm p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">平台简介</h2>
-                <p class="text-secondary leading-relaxed mb-4">
-                    本平台旨在对比传统 RSA 加密算法与基于学习同态加密（LWE）的后量子加密算法，展示两者的加解密流程、核心差异及优劣势。
-                    平台集成了高斯噪声生成（LWE 核心）、加解密流程可视化、自定义明文加解密实操等功能，帮助理解量子时代的加密技术演进。
-                </p>
-                <div class="flex flex-wrap gap-4 mt-4">
-                    <div class="flex-1 min-w-[200px] bg-neutral rounded-lg p-4">
-                        <h3 class="font-semibold text-primary mb-2">RSA 核心</h3>
-                        <p class="text-sm text-secondary">基于大整数因式分解的非对称加密，经典商用加密标准，但易受量子计算攻击。</p>
+        
+        <!-- ===== 2. RSA 算法介绍 ===== -->
+        <div class="card" id="rsa-intro">
+            <h2>🔑 RSA 算法介绍</h2>
+            <span class="badge badge-rsa">非对称加密</span>
+            <span class="badge badge-warning">不抗量子</span>
+            <span class="badge">1977 年提出</span>
+            <br><br>
+            
+            <h3>📌 基本原理</h3>
+            <p>RSA 是最早实用的公钥加密算法，基于<strong>大整数分解</strong>的数学难题。安全性依赖于：给定一个大合数 n = p × q（p、q 为大质数），在计算上难以分解出 p 和 q。</p>
+            
+            <h3>📐 数学公式</h3>
+            <div class="formula-box">
+                <p><strong>密钥生成：</strong></p>
+                <p>1. 选择两个大质数 p, q</p>
+                <p>2. 计算 n = p × q</p>
+                <p>3. 计算 φ(n) = (p-1)(q-1)</p>
+                <p>4. 选择 e (1 &lt; e &lt; φ(n), gcd(e,φ(n))=1)</p>
+                <p>5. 计算 d = e⁻¹ mod φ(n)</p>
+                <p><strong>公钥：</strong>(e, n) &nbsp;&nbsp; <strong>私钥：</strong>(d, n)</p>
+                <br>
+                <p><strong>加密：</strong> c = m^e mod n</p>
+                <p><strong>解密：</strong> m = c^d mod n</p>
+            </div>
+            
+            <h3>🔄 加密流程图</h3>
+            <div class="flow-chart">
+                <div class="flow-step">选择质数<br>p, q</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">计算<br>n = p×q</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">生成<br>密钥对 (e,d)</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">加密<br>c = m^e mod n</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">解密<br>m = c^d mod n</div>
+            </div>
+        </div>
+        
+        <!-- ===== 3. RSA 加解密 UI ===== -->
+        <div class="card" id="rsa-demo">
+            <h2>🔒 RSA 加解密 UI</h2>
+            
+            <div class="grid-2">
+                <div>
+                    <h3>🔑 密钥管理</h3>
+                    <button class="btn btn-primary" onclick="rsaGenerateKeys()">生成密钥对</button>
+                    <button class="btn btn-success" onclick="rsaExportKeys()">📤 导出密钥</button>
+                    <button class="btn btn-warning" onclick="rsaImportKeys()">📥 导入密钥</button>
+                    <button class="btn btn-danger" onclick="rsaClearKeys()">🗑️ 清除密钥</button>
+                    
+                    <h4 style="margin-top: 15px;">公钥 (Public Key)</h4>
+                    <textarea id="rsaPublicKey" placeholder="点击"生成密钥对"后自动显示" readonly></textarea>
+                    
+                    <h4>私钥 (Private Key)</h4>
+                    <textarea id="rsaPrivateKey" placeholder="请妥善保管，不要泄露！" readonly></textarea>
+                </div>
+                
+                <div>
+                    <h3>🔐 加密操作</h3>
+                    <textarea id="rsaEncryptInput" placeholder="输入要加密的明文..."></textarea>
+                    <button class="btn btn-primary" onclick="rsaEncrypt()">🔒 加密</button>
+                    <textarea id="rsaEncryptOutput" placeholder="加密后的密文将显示在这里" readonly></textarea>
+                    
+                    <h3>🔓 解密操作</h3>
+                    <textarea id="rsaDecryptInput" placeholder="粘贴要解密的密文..."></textarea>
+                    <button class="btn btn-success" onclick="rsaDecrypt()">🔓 解密</button>
+                    <textarea id="rsaDecryptOutput" placeholder="解密结果将显示在这里" readonly></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ===== 4. RSA 加解密具体过程（用户填写） ===== -->
+        <div class="card" id="rsa-process">
+            <h2>📝 RSA 加解密具体过程（用户填写）</h2>
+            <p style="color: #666;">💡 在此记录你进行 RSA 加解密时的具体步骤和参数，方便学习和复习。</p>
+            
+            <div class="user-input-section">
+                <h4>🔑 密钥生成过程记录</h4>
+                <textarea id="rsaProcessKeyGen" placeholder="记录你选择的 p、q 值，计算 n、φ(n) 的过程...
+示例：
+p = 61
+q = 53
+n = p × q = 3233
+φ(n) = (p-1)(q-1) = 3120
+e = 17
+d = e⁻¹ mod φ(n) = 2753"></textarea>
+            </div>
+            
+            <div class="user-input-section">
+                <h4>🔒 加密过程记录</h4>
+                <textarea id="rsaProcessEncrypt" placeholder="记录加密过程的计算步骤...
+示例：
+明文 m = 65
+公钥 (e, n) = (17, 3233)
+密文 c = m^e mod n = 65^17 mod 3233 = 2790"></textarea>
+            </div>
+            
+            <div class="user-input-section">
+                <h4>🔓 解密过程记录</h4>
+                <textarea id="rsaProcessDecrypt" placeholder="记录解密过程的计算步骤...
+示例：
+密文 c = 2790
+私钥 (d, n) = (2753, 3233)
+明文 m = c^d mod n = 2790^2753 mod 3233 = 65"></textarea>
+            </div>
+            
+            <button class="btn btn-primary" onclick="saveRsaProcess()">💾 保存记录</button>
+            <button class="btn btn-success" onclick="loadRsaProcess()">📂 加载记录</button>
+            <button class="btn btn-danger" onclick="clearRsaProcess()">🗑️ 清空记录</button>
+        </div>
+        
+        <!-- ===== 5. LWE 算法介绍 ===== -->
+        <div class="card lwe-card" id="lwe-intro">
+            <h2>🌊 LWE 算法介绍</h2>
+            <span class="badge badge-lwe">格基加密</span>
+            <span class="badge badge-success">抗量子</span>
+            <span class="badge">2005 年提出</span>
+            <br><br>
+            
+            <h3>📌 基本原理</h3>
+            <p>LWE (Learning With Errors) 是基于<strong>格问题</strong>的密码学原语。核心思想是：在高维空间中，给定一些带有小噪声的线性方程，恢复秘密向量在计算上是困难的。</p>
+            
+            <h3>📐 数学公式</h3>
+            <div class="formula-box lwe">
+                <p><strong>参数：</strong></p>
+                <p>n = 维度，q = 模数，χ = 噪声分布（通常为离散高斯）</p>
+                <br>
+                <p><strong>密钥生成：</strong></p>
+                <p>1. 随机生成矩阵 A ∈ Z_q^(n×n)</p>
+                <p>2. 随机生成秘密向量 s ∈ Z_q^n</p>
+                <p>3. 生成噪声向量 e ← χ^n</p>
+                <p>4. 计算 b = A·s + e mod q</p>
+                <p><strong>公钥：</strong>(A, b) &nbsp;&nbsp; <strong>私钥：</strong>s</p>
+                <br>
+                <p><strong>加密（明文 m ∈ {0,1}）：</strong></p>
+                <p>1. 随机生成 r ∈ {0,1}^n</p>
+                <p>2. u = A^T·r mod q</p>
+                <p>3. v = b^T·r + m·⌊q/2⌋ mod q</p>
+                <p><strong>密文：</strong>(u, v)</p>
+                <br>
+                <p><strong>解密：</strong></p>
+                <p>m = round((v - s^T·u) / ⌊q/2⌋) mod 2</p>
+            </div>
+            
+            <h3>🔄 加密流程图</h3>
+            <div class="flow-chart">
+                <div class="flow-step lwe">生成矩阵<br>A ∈ Z_q^(n×n)</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step lwe">生成噪声<br>e ← 高斯分布</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step lwe">计算公钥<br>b = A·s + e</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step lwe">加密<br>(u, v)</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step lwe">解密<br>m</div>
+            </div>
+        </div>
+        
+        <!-- ===== 6. LWE 加解密 UI ===== -->
+        <div class="card lwe-card" id="lwe-demo">
+            <h2>🌊 LWE 加解密 UI（教学模拟）</h2>
+            <p style="color: #666;">⚠️ 注意：此为教学演示版本，实际 LWE 实现需要更复杂的参数和安全措施。</p>
+            
+            <div class="grid-2">
+                <div>
+                    <h3>⚙️ 参数设置</h3>
+                    <label>维度 n: <input type="number" id="lweN" value="8" min="4" max="16"></label>
+                    <label>模数 q: <input type="number" id="lweQ" value="97" min="17"></label>
+                    <label>噪声 σ: <input type="number" id="lweSigma" value="2.0" step="0.1" min="0.5"></label>
+                    <br><br>
+                    <button class="btn btn-primary" onclick="lweGenerateKeys()">生成密钥对</button>
+                    <button class="btn btn-success" onclick="lweExportKeys()">📤 导出密钥</button>
+                    <button class="btn btn-warning" onclick="lweImportKeys()">📥 导入密钥</button>
+                    
+                    <h4 style="margin-top: 15px;">公钥 (A, b)</h4>
+                    <textarea id="lwePublicKey" placeholder="点击"生成密钥对"后自动显示" readonly></textarea>
+                    
+                    <h4>私钥 (s)</h4>
+                    <textarea id="lwePrivateKey" placeholder="请妥善保管！" readonly></textarea>
+                </div>
+                
+                <div>
+                    <h3>🔐 加密操作</h3>
+                    <p style="font-size: 13px; color: #666;">明文只能输入 0 或 1</p>
+                    <textarea id="lweEncryptInput" placeholder="输入 0 或 1" style="height: 60px;"></textarea>
+                    <button class="btn btn-primary" onclick="lweEncrypt()">🔒 加密</button>
+                    <textarea id="lweEncryptOutput" placeholder="密文 (u, v) 将显示在这里" readonly></textarea>
+                    
+                    <h3>🔓 解密操作</h3>
+                    <textarea id="lweDecryptInput" placeholder="粘贴密文 JSON..." style="height: 60px;"></textarea>
+                    <button class="btn btn-success" onclick="lweDecrypt()">🔓 解密</button>
+                    <textarea id="lweDecryptOutput" placeholder="解密结果将显示在这里" readonly></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ===== 7. LWE 加解密具体过程（用户填写） ===== -->
+        <div class="card lwe-card" id="lwe-process">
+            <h2>📝 LWE 加解密具体过程（用户填写）</h2>
+            <p style="color: #666;">💡 在此记录你进行 LWE 加解密时的具体步骤和参数。</p>
+            
+            <div class="user-input-section" style="background: #e8f5e9; border-color: #4caf50;">
+                <h4>🔑 密钥生成过程记录</h4>
+                <textarea id="lweProcessKeyGen" placeholder="记录 LWE 密钥生成过程...
+示例：
+n = 4, q = 17, σ = 1.5
+A = [[3,5,2,8],[7,1,4,6],[9,3,5,2],[4,8,1,7]]
+s = [2,4,1,3]
+e = [1,-1,0,1] (高斯采样)
+b = A·s + e mod q = [5,12,8,14]"></textarea>
+            </div>
+            
+            <div class="user-input-section" style="background: #e8f5e9; border-color: #4caf50;">
+                <h4>🔒 加密过程记录</h4>
+                <textarea id="lweProcessEncrypt" placeholder="记录 LWE 加密过程...
+示例：
+明文 m = 1
+随机向量 r = [1,0,1,0]
+u = A^T·r mod q = [12,8,7,10]
+v = b^T·r + m·⌊q/2⌋ mod q = 5+8 = 13
+密文 = (u, v) = ([12,8,7,10], 13)"></textarea>
+            </div>
+            
+            <div class="user-input-section" style="background: #e8f5e9; border-color: #4caf50;">
+                <h4>🔓 解密过程记录</h4>
+                <textarea id="lweProcessDecrypt" placeholder="记录 LWE 解密过程...
+示例：
+密文 (u, v) = ([12,8,7,10], 13)
+s^T·u = 2×12+4×8+1×7+3×10 = 93 mod 17 = 8
+v - s^T·u = 13 - 8 = 5
+5 / ⌊17/2⌋ = 5/8 ≈ 0.625 → round = 1
+明文 m = 1"></textarea>
+            </div>
+            
+            <button class="btn btn-primary" onclick="saveLweProcess()">💾 保存记录</button>
+            <button class="btn btn-success" onclick="loadLweProcess()">📂 加载记录</button>
+            <button class="btn btn-danger" onclick="clearLweProcess()">🗑️ 清空记录</button>
+        </div>
+        
+        <!-- ===== 8. 可视化展示 ===== -->
+        <div class="card" id="visualization">
+            <h2>📊 可视化展示</h2>
+            
+            <div class="grid-2">
+                <div>
+                    <h3>📈 高斯噪声分布</h3>
+                    <div class="chart-container">
+                        <canvas id="gaussChart"></canvas>
                     </div>
-                    <div class="flex-1 min-w-[200px] bg-neutral rounded-lg p-4">
-                        <h3 class="font-semibold text-lwe mb-2">LWE 核心</h3>
-                        <p class="text-sm text-secondary">基于学习误差问题的格密码，抗量子计算攻击，后量子加密的核心方向之一。</p>
+                    <p style="font-size: 13px; color: #666;">LWE 安全性依赖于噪声的不可预测性，噪声通常服从离散高斯分布。</p>
+                </div>
+                
+                <div>
+                    <h3>🎲 噪声可视化</h3>
+                    <div class="noise-visual" id="noiseVisual"></div>
+                    <button class="btn btn-primary" onclick="generateNoiseVisual()">🔄 刷新噪声</button>
+                    
+                    <h3 style="margin-top: 20px;">🔄 算法流程对比</h3>
+                    <div class="flow-chart">
+                        <div class="flow-step">RSA<br>大数分解</div>
+                        <div class="flow-arrow">VS</div>
+                        <div class="flow-step lwe">LWE<br>格问题 + 噪声</div>
                     </div>
                 </div>
-            </section>
-
-            <!-- 2. RSA 加密介绍 -->
-            <section id="rsa-intro" class="mb-10 bg-white rounded-xl shadow-sm p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-key text-rsa mr-2"></i>RSA 加密算法
-                </h2>
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <h3 class="text-lg font-semibold mb-3">核心原理</h3>
-                        <ul class="list-disc list-inside text-secondary space-y-2 mb-4">
-                            <li>非对称加密：公钥加密，私钥解密</li>
-                            <li>数学基础：大整数因式分解的计算困难性</li>
-                            <li>密钥生成：选择两个大质数 p、q → 计算 n=pq → 生成公钥 (e,n) 和私钥 (d,n)</li>
-                            <li>加密：C = M^e mod n | 解密：M = C^d mod n</li>
-                        </ul>
-                        <h3 class="text-lg font-semibold mb-3">适用场景</h3>
-                        <p class="text-secondary">数字签名、密钥交换、小型数据加密（如 HTTPS 握手）</p>
-                    </div>
-                    <div class="bg-neutral rounded-lg p-4">
-                        <h3 class="text-lg font-semibold mb-3">RSA 加解密核心 UI</h3>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">明文 (数字)</label>
-                                <input type="number" id="rsa-plaintext" class="form-input-custom" placeholder="输入整数明文 (如 123)" value="123">
-                            </div>
-                            <button id="rsa-generate-key" class="bg-rsa text-white py-2 px-4 rounded-lg hover:bg-rsa/90 transition-colors">
-                                生成 RSA 密钥对
-                            </button>
-                            <div id="rsa-key-info" class="text-sm text-secondary mt-2 hidden">
-                                <p>公钥 (e, n)：<span id="rsa-pub-key"></span></p>
-                                <p>私钥 (d, n)：<span id="rsa-priv-key"></span></p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button id="rsa-encrypt" class="flex-1 bg-rsa/80 text-white py-2 px-4 rounded-lg hover:bg-rsa/90 transition-colors">加密</button>
-                                <button id="rsa-decrypt" class="flex-1 bg-rsa/60 text-white py-2 px-4 rounded-lg hover:bg-rsa/80 transition-colors">解密</button>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">密文/解密结果</label>
-                                <input type="text" id="rsa-result" class="form-input-custom" readonly placeholder="加密/解密结果">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 3. LWE 加密介绍 -->
-            <section id="lwe-intro" class="mb-10 bg-white rounded-xl shadow-sm p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-shield-halved text-lwe mr-2"></i>LWE 加密算法
-                </h2>
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <h3 class="text-lg font-semibold mb-3">核心原理</h3>
-                        <ul class="list-disc list-inside text-secondary space-y-2 mb-4">
-                            <li>格密码的核心：基于“学习同态误差”（LWE）的计算困难性</li>
-                            <li>抗量子计算：量子算法无法高效解决 LWE 问题</li>
-                            <li>核心要素：密钥 s、随机向量 a、高斯噪声 e、明文 m</li>
-                            <li>加密：b = a·s + e + m (mod q) | 解密：m = b - a·s (mod q)（噪声 e 需足够小）</li>
-                        </ul>
-                        <h3 class="text-lg font-semibold mb-3">高斯噪声 (LWE 核心)</h3>
-                        <p class="text-secondary mb-2">LWE 的安全性依赖于“小噪声”，噪声服从高斯分布（正态分布），确保解密时可消除误差：</p>
-                        <div class="flex items-center gap-2">
-                            <button id="generate-noise" class="bg-lwe text-white py-2 px-4 rounded-lg hover:bg-lwe/90 transition-colors">
-                                生成高斯噪声
-                            </button>
-                            <span id="noise-value" class="text-sm text-secondary">噪声值：-</span>
-                        </div>
-                    </div>
-                    <div class="bg-neutral rounded-lg p-4">
-                        <h3 class="text-lg font-semibold mb-3">LWE 加解密核心 UI</h3>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">明文 (二进制 0/1)</label>
-                                <input type="number" id="lwe-plaintext" class="form-input-custom" placeholder="输入 0 或 1" min="0" max="1" value="1">
-                            </div>
-                            <button id="lwe-generate-key" class="bg-lwe text-white py-2 px-4 rounded-lg hover:bg-lwe/90 transition-colors">
-                                生成 LWE 密钥
-                            </button>
-                            <div id="lwe-key-info" class="text-sm text-secondary mt-2 hidden">
-                                <p>私钥 s：<span id="lwe-priv-key"></span></p>
-                                <p>模数 q：<span id="lwe-mod-q">257</span></p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button id="lwe-encrypt" class="flex-1 bg-lwe/80 text-white py-2 px-4 rounded-lg hover:bg-lwe/90 transition-colors">加密</button>
-                                <button id="lwe-decrypt" class="flex-1 bg-lwe/60 text-white py-2 px-4 rounded-lg hover:bg-lwe/80 transition-colors">解密</button>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">密文/解密结果</label>
-                                <input type="text" id="lwe-result" class="form-input-custom" readonly placeholder="加密/解密结果">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 4. 加解密实操 (自定义输入) -->
-            <section id="encrypt-decrypt" class="mb-10 bg-white rounded-xl shadow-sm p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-lock mr-2"></i>加解密实操 (自定义输入)
-                </h2>
-                <div class="grid md:grid-cols-2 gap-6">
-                    <!-- RSA 实操区 -->
-                    <div class="border border-gray-200 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-rsa mb-3">RSA 自定义加解密</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">自定义明文 (整数)</label>
-                                <input type="number" id="rsa-custom-plain" class="form-input-custom" placeholder="输入任意整数 (如 9527)">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">自定义密钥 (可选，留空自动生成)</label>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <input type="number" id="rsa-custom-e" class="form-input-custom" placeholder="公钥 e (如 65537)">
-                                    <input type="number" id="rsa-custom-n" class="form-input-custom" placeholder="模数 n (如 3233)">
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button id="rsa-custom-encrypt" class="flex-1 bg-rsa text-white py-2 px-4 rounded-lg hover:bg-rsa/90 transition-colors">加密</button>
-                                <button id="rsa-custom-decrypt" class="flex-1 bg-rsa/80 text-white py-2 px-4 rounded-lg hover:bg-rsa/90 transition-colors">解密</button>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">实操结果</label>
-                                <textarea id="rsa-custom-result" class="form-input-custom h-24 resize-none" readonly placeholder="加解密结果及过程..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- LWE 实操区 -->
-                    <div class="border border-gray-200 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-lwe mb-3">LWE 自定义加解密</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">自定义明文 (0/1)</label>
-                                <input type="number" id="lwe-custom-plain" class="form-input-custom" placeholder="输入 0 或 1" min="0" max="1">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">噪声强度 (高斯分布 σ)</label>
-                                <input type="number" id="lwe-noise-sigma" class="form-input-custom" placeholder="噪声标准差 (如 1.0)" value="1.0" step="0.1">
-                            </div>
-                            <div class="flex gap-2">
-                                <button id="lwe-custom-encrypt" class="flex-1 bg-lwe text-white py-2 px-4 rounded-lg hover:bg-lwe/90 transition-colors">加密 (带噪声)</button>
-                                <button id="lwe-custom-decrypt" class="flex-1 bg-lwe/80 text-white py-2 px-4 rounded-lg hover:bg-lwe/90 transition-colors">解密</button>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">实操结果 (含噪声/流程)</label>
-                                <textarea id="lwe-custom-result" class="form-input-custom h-24 resize-none" readonly placeholder="加解密结果及过程..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 5. 加密算法对比 -->
-            <section id="comparison" class="mb-10 bg-white rounded-xl shadow-sm p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-table mr-2"></i>RSA vs LWE 对比
-                </h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border border-gray-200 px-4 py-3 text-left font-semibold">对比维度</th>
-                                <th class="border border-gray-200 px-4 py-3 text-left font-semibold text-rsa">RSA 加密</th>
-                                <th class="border border-gray-200 px-4 py-3 text-left font-semibold text-lwe">LWE 加密</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="hover:bg-gray-50">
-                                <td class="border border-gray-200 px-4 py-3 font-medium">数学基础</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">大整数因式分解（NP 难）</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">格上学习误差问题（量子抗性）</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="border border-gray-200 px-4 py-3 font-medium">量子抗性</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">无（Shor 算法可快速破解）</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">有（量子算法无多项式时间解法）</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="border border-gray-200 px-4 py-3 font-medium">密钥长度</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">2048/4096 位（安全）</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">较短（格维度 ~512 即可）</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="border border-gray-200 px-4 py-3 font-medium">计算效率</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">加密快，解密/密钥生成慢（大数运算）</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">加解密快（线性运算），噪声控制是关键</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="border border-gray-200 px-4 py-3 font-medium">适用场景</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">传统加密、数字签名、密钥交换</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">后量子加密、物联网、同态加密</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="border border-gray-200 px-4 py-3 font-medium">安全性依赖</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">大质数分解的难度</td>
-                                <td class="border border-gray-200 px-4 py-3 text-secondary">高斯噪声的隐藏性、格问题的难度</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mt-6 bg-neutral rounded-lg p-4">
-                    <h3 class="text-lg font-semibold mb-2">核心优劣势总结</h3>
-                    <ul class="space-y-2 text-secondary">
-                        <li><strong>RSA 优势</strong>：标准化程度高、部署成熟、适合小数据加密；<strong>劣势</strong>：量子易破解、密钥长、大数运算效率低。</li>
-                        <li><strong>LWE 优势</strong>：抗量子、运算高效、密钥短、支持同态加密；<strong>劣势</strong>：标准化程度低、噪声控制复杂、工程落地少。</li>
+            </div>
+        </div>
+        
+        <!-- ===== 9. 对比分析 ===== -->
+        <div class="card" id="comparison">
+            <h2>⚖️ RSA vs LWE 对比分析</h2>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">特性</th>
+                        <th style="width: 37%;"><span class="badge badge-rsa">RSA</span></th>
+                        <th style="width: 38%;"><span class="badge badge-lwe">LWE</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>数学基础</strong></td>
+                        <td>大整数分解问题</td>
+                        <td>格问题 (Learning With Errors)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>提出时间</strong></td>
+                        <td>1977 年</td>
+                        <td>2005 年</td>
+                    </tr>
+                    <tr>
+                        <td><strong>抗量子性</strong></td>
+                        <td><span class="badge badge-warning">❌ 不抗量子</span><br>Shor 算法可破解</td>
+                        <td><span class="badge badge-success">✅ 抗量子</span><br>目前无已知量子算法</td>
+                    </tr>
+                    <tr>
+                        <td><strong>密钥大小</strong></td>
+                        <td>2048-4096 位<br>(256-512 字节)</td>
+                        <td>较大<br>(数千到数万字节)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>加密速度</strong></td>
+                        <td>⚡ 较快</td>
+                        <td>🐢 较慢</td>
+                    </tr>
+                    <tr>
+                        <td><strong>密文膨胀</strong></td>
+                        <td>中等</td>
+                        <td>较大</td>
+                    </tr>
+                    <tr>
+                        <td><strong>标准化</strong></td>
+                        <td>PKCS#1, FIPS 186-4</td>
+                        <td>NIST PQC 候选 (ML-KEM)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>安全性证明</strong></td>
+                        <td>经验安全</td>
+                        <td>可证明安全 (归约到格问题)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>噪声引入</strong></td>
+                        <td>❌ 无噪声</td>
+                        <td>✅ 高斯噪声 (核心)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>应用场景</strong></td>
+                        <td>HTTPS, SSH, 数字签名</td>
+                        <td>后量子安全通信，FHE</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>📊 优劣势总结</h3>
+            <div class="grid-2">
+                <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 20px; border-radius: 10px; border-left: 4px solid #00d9ff;">
+                    <h4 style="color: #1565c0;">🔑 RSA 优势</h4>
+                    <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                        <li>成熟稳定，已使用 40+ 年</li>
+                        <li>实现简单，库支持完善</li>
+                        <li>密钥相对较小</li>
+                        <li>加密解密速度快</li>
+                        <li>广泛部署于现有系统</li>
+                    </ul>
+                    <h4 style="color: #c62828; margin-top: 20px;">🔑 RSA 劣势</h4>
+                    <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                        <li>量子计算机可破解 (Shor 算法)</li>
+                        <li>需要大密钥保证安全</li>
+                        <li>无可证明安全性</li>
+                        <li>密钥生成较慢</li>
                     </ul>
                 </div>
-            </section>
-
-            <!-- 6. 可视化模块 (高斯分布/加解密流程) -->
-            <section id="visualization" class="mb-10 bg-white rounded-xl shadow-sm p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-chart-line mr-2"></i>可视化：高斯分布 & 加解密流程
-                </h2>
-                <div class="grid md:grid-cols-2 gap-6">
-                    <!-- 高斯分布可视化 -->
-                    <div class="border border-gray-200 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold mb-3">高斯噪声分布 (LWE 核心)</h3>
-                        <div class="h-64">
-                            <canvas id="gaussian-chart"></canvas>
-                        </div>
-                        <div class="mt-4 flex gap-2">
-                            <button id="update-gaussian" class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors">
-                                更新分布 (调整 σ)
-                            </button>
-                            <input type="number" id="gaussian-sigma" class="form-input-custom w-24" value="1.0" step="0.1" placeholder="σ 值">
-                        </div>
-                        <p class="text-sm text-secondary mt-2">注：LWE 的噪声 e 服从该分布，σ 越小，解密成功率越高，但安全性越低。</p>
-                    </div>
-
-                    <!-- 加解密流程可视化 -->
-                    <div class="border border-gray-200 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold mb-3">加解密流程对比</h3>
-                        <div class="mb-4">
-                            <button class="bg-rsa/80 text-white py-2 px-3 rounded-lg mr-2 hover:bg-rsa transition-colors" onclick="showFlow('rsa')">
-                                RSA 流程
-                            </button>
-                            <button class="bg-lwe/80 text-white py-2 px-3 rounded-lg hover:bg-lwe transition-colors" onclick="showFlow('lwe')">
-                                LWE 流程
-                            </button>
-                        </div>
-                        <div id="flow-container" class="h-64 overflow-y-auto">
-                            <div id="rsa-flow" class="flow-content">
-                                <div class="step-item bg-rsa/5">
-                                    <span class="font-semibold text-rsa">步骤 1：密钥生成</span>
-                                    <p class="text-sm mt-1">选择两个大质数 p、q → 计算 n=pq → 计算欧拉函数 φ(n)=(p-1)(q-1) → 选择 e 与 φ(n) 互质 → 计算 d = e⁻¹ mod φ(n)</p>
-                                </div>
-                                <div class="step-item bg-rsa/5">
-                                    <span class="font-semibold text-rsa">步骤 2：加密</span>
-                                    <p class="text-sm mt-1">明文 M → 密文 C = M^e mod n（公钥 (e,n) 加密）</p>
-                                </div>
-                                <div class="step-item bg-rsa/5">
-                                    <span class="font-semibold text-rsa">步骤 3：解密</span>
-                                    <p class="text-sm mt-1">密文 C → 明文 M = C^d mod n（私钥 (d,n) 解密）</p>
-                                </div>
-                            </div>
-                            <div id="lwe-flow" class="flow-content hidden">
-                                <div class="step-item bg-lwe/5">
-                                    <span class="font-semibold text-lwe">步骤 1：密钥生成</span>
-                                    <p class="text-sm mt-1">选择格维度 k、模数 q → 生成私钥 s (k 维二进制向量) → 公钥由 (a, b=a·s+e) 组成（e 为高斯噪声）</p>
-                                </div>
-                                <div class="step-item bg-lwe/5">
-                                    <span class="font-semibold text-lwe">步骤 2：加密</span>
-                                    <p class="text-sm mt-1">明文 m (0/1) → 随机选向量 a → 计算 b = a·s + e + m·q/2 mod q → 密文 (a, b)</p>
-                                </div>
-                                <div class="step-item bg-lwe/5">
-                                    <span class="font-semibold text-lwe">步骤 3：解密</span>
-                                    <p class="text-sm mt-1">计算 b - a·s mod q → 若结果接近 q/2 则为 1，否则为 0（噪声 e 需小于 q/4）</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                
+                <div style="background: linear-gradient(135deg, #ffebee, #ffcdd2); padding: 20px; border-radius: 10px; border-left: 4px solid #ff6b6b;">
+                    <h4 style="color: #c62828;">🌊 LWE 优势</h4>
+                    <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                        <li>抗量子计算机攻击</li>
+                        <li>可证明安全性</li>
+                        <li>NIST 后量子标准候选</li>
+                        <li>支持全同态加密 (FHE)</li>
+                        <li>灵活的参数选择</li>
+                    </ul>
+                    <h4 style="color: #1565c0; margin-top: 20px;">🌊 LWE 劣势</h4>
+                    <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                        <li>密钥和密文较大</li>
+                        <li>计算开销较大</li>
+                        <li>实现复杂度高</li>
+                        <li>标准化仍在进行中</li>
+                    </ul>
                 </div>
-            </section>
-        </div>
-    </main>
-
-    <!-- 页脚 -->
-    <footer class="bg-white border-t border-gray-200 py-4 md:pl-64">
-        <div class="container mx-auto px-4 text-center text-sm text-secondary">
-            <p>LWE 加密系统对比平台 © 2024 | 后量子加密技术演示</p>
-        </div>
-    </footer>
-
-    <!-- 核心逻辑 JS -->
-    <script>
-        // 1. 侧边栏切换
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
-        }
-
-        // 2. 高斯噪声生成 (Box-Muller 变换)
-        function generateGaussianNoise(mean = 0, sigma = 1.0) {
-            let u = 1 - Math.random();
-            let v = Math.random();
-            let z = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-            return mean + z * sigma;
-        }
-
-        // 3. RSA 核心实现 (简化版，仅演示)
-        class RSA {
-            constructor() {
-                this.p = 0;
-                this.q = 0;
-                this.n = 0;
-                this.e = 0;
-                this.d = 0;
-            }
-
-            // 生成密钥对 (简化：固定小质数，仅演示)
-            generateKeys() {
-                // 演示用小质数（生产环境需大质数）
-                this.p = 61;
-                this.q = 53;
-                this.n = this.p * this.q;
-                const phi = (this.p - 1) * (this.q - 1);
-                this.e = 65537; // 常用公钥指数
-                // 计算私钥 d (e 的模逆)
-                this.d = this.modInverse(this.e, phi);
-                return { pub: { e: this.e, n: this.n }, priv: { d: this.d, n: this.n } };
-            }
-
-            // 模逆计算 (扩展欧几里得算法)
-            modInverse(a, m) {
-                let m0 = m;
-                let y = 0, x = 1;
-                if (m === 1) return 0;
-                while (a > 1) {
-                    let q = Math.floor(a / m);
-                    let t = m;
-                    m = a % m;
-                    a = t;
-                    t = y;
-                    y = x - q * y;
-                    x = t;
-                }
-                return x < 0 ? x + m0 : x;
-            }
-
-            // 加密
-            encrypt(m, e = this.e, n = this.n) {
-                return this.modPow(m, e, n);
-            }
-
-            // 解密
-            decrypt(c, d = this.d, n = this.n) {
-                return this.modPow(c, d, n);
-            }
-
-            // 快速幂取模
-            modPow(base, exp, mod) {
-                if (mod === 1) return 0;
-                let result = 1;
-                base = base % mod;
-                while (exp > 0) {
-                    if (exp % 2 === 1) result = (result * base) % mod;
-                    exp = Math.floor(exp / 2);
-                    base = (base * base) % mod;
-                }
-                return result;
-            }
-        }
-
-        // 4. LWE 核心实现 (简化版，仅演示)
-        class LWE {
-            constructor() {
-                this.q = 257; // 模数 (质数)
-                this.k = 8;   // 格维度
-                this.s = [];  // 私钥 (k 维二进制向量)
-            }
-
-            // 生成密钥
-            generateKeys() {
-                // 生成二进制私钥 s
-                this.s = Array.from({ length: this.k }, () => Math.round(Math.random()));
-                return { priv: this.s, q: this.q };
-            }
-
-            // 加密 (带高斯噪声)
-            encrypt(m, sigma = 1.0) {
-                if (m !== 0 && m !== 1) throw new Error("LWE 明文仅支持 0/1");
-                // 生成随机向量 a (k 维，0~q-1)
-                const a = Array.from({ length: this.k }, () => Math.floor(Math.random() * this.q));
-                // 计算 a·s mod q
-                const aDotS = a.reduce((sum, ai, i) => sum + ai * this.s[i], 0) % this.q;
-                // 生成高斯噪声
-                const e = Math.round(generateGaussianNoise(0, sigma));
-                // 计算 b = a·s + e + m*q/2 mod q
-                const b = (aDotS + e + m * Math.floor(this.q / 2)) % this.q;
-                return { a: a, b: b, e: e }; // 密文 + 噪声 (演示用)
-            }
-
-            // 解密
-            decrypt(c) {
-                const { a, b } = c;
-                const aDotS = a.reduce((sum, ai, i) => sum + ai * this.s[i], 0) % this.q;
-                const val = (b - aDotS + this.q) % this.q; // 确保非负
-                // 判断是否接近 q/2
-                return Math.abs(val - Math.floor(this.q / 2)) < Math.floor(this.q / 4) ? 1 : 0;
-            }
-        }
-
-        // 5. 高斯分布图表初始化
-        let gaussianChart;
-        function initGaussianChart(sigma = 1.0) {
-            const ctx = document.getElementById('gaussian-chart').getContext('2d');
-            // 生成 x 轴数据 (-5σ ~ 5σ)
-            const x = Array.from({ length: 100 }, (_, i) => -5 * sigma + (10 * sigma * i) / 99);
-            // 高斯分布公式：f(x) = (1/(σ√(2π))) * e^(-x²/(2σ²))
-            const y = x.map(xVal => (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-(xVal ** 2) / (2 * sigma ** 2)));
+            </div>
             
-            if (gaussianChart) gaussianChart.destroy();
-            gaussianChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: x.map(x => x.toFixed(2)),
-                    datasets: [{
-                        label: `高斯分布 (σ=${sigma})`,
-                        data: y,
-                        borderColor: '#165DFF',
-                        backgroundColor: 'rgba(22, 93, 255, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { title: { text: '概率密度', display: true } },
-                        x: { title: { text: '噪声值', display: true } }
-                    }
-                }
-            });
-        }
-
-        // 6. 加解密流程切换
-        function showFlow(type) {
-            document.querySelectorAll('.flow-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`${type}-flow`).classList.remove('hidden');
-        }
-
-        // 7. 页面加载后初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            // 初始化高斯图表
-            initGaussianChart(1.0);
-
-            // --------------------------
-            // RSA 核心 UI 事件
-            // --------------------------
-            const rsa = new RSA();
-            // 生成 RSA 密钥
-            document.getElementById('rsa-generate-key').addEventListener('click', () => {
-                const keys = rsa.generateKeys();
-                document.getElementById('rsa-pub-key').textContent = `(${keys.pub.e}, ${keys.pub.n})`;
-                document.getElementById('rsa-priv-key').textContent = `(${keys.priv.d}, ${keys.priv.n})`;
-                document.getElementById('rsa-key-info').classList.remove('hidden');
-            });
-            // RSA 加密
-            document.getElementById('rsa-encrypt').addEventListener('click', () => {
-                const m = parseInt(document.getElementById('rsa-plaintext').value);
-                if (isNaN(m)) return alert('请输入有效整数');
-                const c = rsa.encrypt(m);
-                document.getElementById('rsa-result').value = c;
-            });
-            // RSA 解密
-            document.getElementById('rsa-decrypt').addEventListener('click', () => {
-                const c = parseInt(document.getElementById('rsa-result').value);
-                if (isNaN(c)) return alert('请先加密生成密文');
-                const m = rsa.decrypt(c);
-                document.getElementById('rsa-result').value = m;
-            });
-
-            // --------------------------
-            // LWE 核心 UI 事件
-            // --------------------------
-            const lwe = new LWE();
-            // 生成 LWE 密钥
-            document.getElementById('lwe-generate-key').addEventListener('click', () => {
-                const keys = lwe.generateKeys();
-                document.getElementById('lwe-priv-key').textContent = keys.priv.join(', ');
-                document.getElementById('lwe-key-info').classList.remove('hidden');
-            });
-            // 生成高斯噪声
-            document.getElementById('generate-noise').addEventListener('click', () => {
-                const noise = generateGaussianNoise(0, 1.0).toFixed(4);
-                document.getElementById('noise-value').textContent = `噪声值：${noise}`;
-            });
-            // LWE 加密
-            document.getElementById('lwe-encrypt').addEventListener('click', () => {
-                const m = parseInt(document.getElementById('lwe-plaintext').value);
-                if (isNaN(m) || (m !== 0 && m !== 1)) return alert('请输入 0 或 1');
-                const c = lwe.encrypt(m);
-                document.getElementById('lwe-result').value = `a=[${c.a}], b=${c.b}, 噪声e=${c.e}`;
-            });
-            // LWE 解密
-            document.getElementById('lwe-decrypt').addEventListener('click', () => {
-                const resultStr = document.getElementById('lwe-result').value;
-                if (!resultStr) return alert('请先加密生成密文');
-                // 解析密文
-                const aMatch = resultStr.match(/a=\[([0-9, ]+)\]/);
-                const bMatch = resultStr.match(/b=([0-9]+)/);
-                if (!aMatch || !bMatch) return alert('密文格式错误');
-                const a = aMatch[1].split(',').map(Number);
-                const b = parseInt(bMatch[1]);
-                const m = lwe.decrypt({ a, b });
-                document.getElementById('lwe-result').value = `解密结果：${m}`;
-            });
-
-            // --------------------------
-            // RSA 自定义实操
-            // --------------------------
-            document.getElementById('rsa-custom-encrypt').addEventListener('click', () => {
-                const m = parseInt(document.getElementById('rsa-custom-plain').value);
-                const e = parseInt(document.getElementById('rsa-custom-e').value) || rsa.e;
-                const n = parseInt(document.getElementById('rsa-custom-n').value) || rsa.n;
-                if (isNaN(m)) return alert('请输入明文');
-                const c = rsa.encrypt(m, e, n);
-                document.getElementById('rsa-custom-result').value = 
-                    `明文：${m}\n公钥 (e=${e}, n=${n})\n加密结果：${c}\n流程：C = ${m}^${e} mod ${n} = ${c}`;
-            });
-            document.getElementById('rsa-custom-decrypt').addEventListener('click', () => {
-                const c = parseInt(document.getElementById('rsa-custom-plain').value);
-                const d = parseInt(document.getElementById('rsa-custom-e').value) || rsa.d;
-                const n = parseInt(document.getElementById('rsa-custom-n').value) || rsa.n;
-                if (isNaN(c)) return alert('请输入密文');
-                const m = rsa.decrypt(c, d, n);
-                document.getElementById('rsa-custom-result').value = 
-                    `密文：${c}\n私钥 (d=${d}, n=${n})\n解密结果：${m}\n流程：M = ${c}^${d} mod ${n} = ${m}`;
-            });
-
-            // --------------------------
-            // LWE 自定义实操
-            // --------------------------
-            document.getElementById('lwe-custom-encrypt').addEventListener('click', () => {
-                const m = parseInt(document.getElementById('lwe-custom-plain').value);
-                const sigma = parseFloat(document.getElementById('lwe-noise-sigma').value) || 1.0;
-                if (isNaN(m) || (m !== 0 && m !== 1)) return alert('请输入 0 或 1');
-                const c = lwe.encrypt(m, sigma);
-                document.getElementById('lwe-custom-result').value = 
-                    `明文：${m}\n噪声 σ=${sigma}，生成噪声 e=${c.e}\n随机向量 a：[${c.a}]\na·s = ${c.a.reduce((sum, ai, i) => sum + ai * lwe.s[i], 0)} mod ${lwe.q}\n` +
-                    `b = (a·s) + e + ${m}*${Math.floor(lwe.q/2)} mod ${lwe.q} = ${c.b}\n密文：(a=[${c.a}], b=${c.b})`;
-            });
-            document.getElementById('lwe-custom-decrypt').addEventListener('click', () => {
-                const resultStr = document.getElementById('lwe-custom-result').value;
-                if (!resultStr) return alert('请先加密生成密文');
-                // 解析密文
-                const aMatch = resultStr.match(/a：\[([0-9, ]+)\]/);
-                const bMatch = resultStr.match(/b = ([0-9]+)/);
-                if (!aMatch || !bMatch) return alert('请先执行加密操作');
-                const a = aMatch[1].split(',').map(Number);
-                const b = parseInt(bMatch[1]);
-                const m = lwe.decrypt({ a, b });
-                document.getElementById('lwe-custom-result').value += 
-                    `\n\n解密过程：\na·s = ${a.reduce((sum, ai, i) => sum + ai * lwe.s[i], 0)} mod ${lwe.q}\n` +
-                    `b - a·s = ${b} - ${a.reduce((sum, ai, i) => sum + ai * lwe.s[i], 0)} = ${(b - a.reduce((sum, ai, i) => sum + ai * lwe.s[i], 0)) % lwe.q}\n` +
-                    `解密结果：${m}`;
-            });
-
-            // --------------------------
-            // 高斯图表更新
-            // --------------------------
-            document.getElementById('update-gaussian').addEventListener('click', () => {
-                const sigma = parseFloat(document.getElementById('gaussian-sigma').value) || 1.0;
-                initGaussianChart(sigma);
-            });
-
-            // --------------------------
-            // 导航栏激活态
-            // --------------------------
-            document.querySelectorAll('nav a').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    document.querySelectorAll('nav a').forEach(el => el.classList.remove('sidebar-active'));
-                    e.target.classList.add('sidebar-active');
-                });
-            });
-        });
-    </script>
+            <h3 style="margin-top: 25px;">🎯 结论与建议</h3>
+            <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border-left: 4px solid #ffc107; margin-top: 15px;">
+                <p><strong>当前阶段：</strong>RSA 仍然是主流选择，但应开始规划向后量子密码的迁移。</p>
+                <p><strong>长期规划：</strong>对于需要长期安全性的数据，建议采用 RSA+LWE 混合加密方案。</p>
+                <p><strong>研究热点：</strong>LWE 及其变体 (RLWE, MLWE) 是后量子密码学最活跃的研究方向。</p>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script src="app.js"></script>
 </body>
 </html>
