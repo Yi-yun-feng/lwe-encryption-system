@@ -6,7 +6,6 @@
 ## 项目结构
 - `jsencrypt-master/` - RSA 前端加密演示
 - `lwe/` - LWE 加密算法核心代码
-- `pythoncode/` - 辅助工具代码
 
 ## 使用方法
 ...
