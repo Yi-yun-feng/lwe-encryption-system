@@ -1,3 +1,13 @@
+// ==================== 全局变量 ====================
+let lweKeys = null;
+let gaussChart = null;
+
+// ==================== 导航菜单 ====================
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('active');
+    document.getElementById('overlay').classList.toggle('active');
+}
+
 // ==================== RSA 功能 ====================
 
 function rsaGenerateKeys() {
@@ -49,8 +59,8 @@ function rsaExportKeys() {
     const privateKey = localStorage.getItem('rsaPrivateKey');
     if (!publicKey || !privateKey) { alert('❌ 没有可导出的密钥！'); return; }
     
-    const keys = { type: 'RSA', publicKey, privateKey };
-    downloadJSON(keys, 'rsa_keys.json');
+    const keys = { type: 'RSA', publicKey, privateKey, date: new Date().toISOString() };
+    downloadJSON(keys, 'rsa_keys_' + new Date().toISOString().slice(0,10) + '.json');
 }
 
 function rsaImportKeys() {
@@ -64,19 +74,55 @@ function rsaImportKeys() {
     });
 }
 
+function rsaClearKeys() {
+    if (confirm('确定要清除 RSA 密钥吗？')) {
+        localStorage.removeItem('rsaPublicKey');
+        localStorage.removeItem('rsaPrivateKey');
+        document.getElementById('rsaPublicKey').value = '';
+        document.getElementById('rsaPrivateKey').value = '';
+        alert('🗑️ RSA 密钥已清除！');
+    }
+}
+
+// ==================== RSA 过程记录 ====================
+
+function saveRsaProcess() {
+    const data = {
+        keyGen: document.getElementById('rsaProcessKeyGen').value,
+        encrypt: document.getElementById('rsaProcessEncrypt').value,
+        decrypt: document.getElementById('rsaProcessDecrypt').value
+    };
+    localStorage.setItem('rsaProcess', JSON.stringify(data));
+    alert('✅ RSA 过程记录已保存！');
+}
+
+function loadRsaProcess() {
+    const data = JSON.parse(localStorage.getItem('rsaProcess') || '{}');
+    if (data.keyGen) document.getElementById('rsaProcessKeyGen').value = data.keyGen;
+    if (data.encrypt) document.getElementById('rsaProcessEncrypt').value = data.encrypt;
+    if (data.decrypt) document.getElementById('rsaProcessDecrypt').value = data.decrypt;
+    alert('📂 RSA 过程记录已加载！');
+}
+
+function clearRsaProcess() {
+    if (confirm('确定要清空 RSA 过程记录吗？')) {
+        document.getElementById('rsaProcessKeyGen').value = '';
+        document.getElementById('rsaProcessEncrypt').value = '';
+        document.getElementById('rsaProcessDecrypt').value = '';
+        localStorage.removeItem('rsaProcess');
+        alert('🗑️ RSA 过程记录已清空！');
+    }
+}
+
 // ==================== LWE 功能（模拟） ====================
 
-let lweKeys = null;
-
-// 高斯分布随机数
 function gaussianRandom(mean = 0, stdev = 1) {
     const u = 1 - Math.random();
     const v = Math.random();
     const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-    return Math.floor(z * stdev + mean);
+    return Math.round(z * stdev + mean);
 }
 
-// 生成随机矩阵
 function randomMatrix(n, q) {
     const matrix = [];
     for (let i = 0; i < n; i++) {
@@ -89,7 +135,6 @@ function randomMatrix(n, q) {
     return matrix;
 }
 
-// 生成随机向量
 function randomVector(n, q) {
     const vec = [];
     for (let i = 0; i < n; i++) {
@@ -98,42 +143,19 @@ function randomVector(n, q) {
     return vec;
 }
 
-// 向量点积
-function dotProduct(a, b, q) {
-    let sum = 0;
-    for (let i = 0; i < a.length; i++) {
-        sum += a[i] * b[i];
-    }
-    return ((sum % q) + q) % q;
-}
-
-// 向量加法
-function vectorAdd(a, b, q) {
-    const result = [];
-    for (let i = 0; i < a.length; i++) {
-        result.push(((a[i] + b[i]) % q + q) % q);
-    }
-    return result;
-}
-
 function lweGenerateKeys() {
-    const n = parseInt(document.getElementById('lweN').value) || 10;
+    const n = parseInt(document.getElementById('lweN').value) || 8;
     const q = parseInt(document.getElementById('lweQ').value) || 97;
-    const sigma = parseFloat(document.getElementById('lweSigma').value) || 2.5;
+    const sigma = parseFloat(document.getElementById('lweSigma').value) || 2.0;
     
-    // 生成矩阵 A
     const A = randomMatrix(n, q);
-    
-    // 生成秘密向量 s
     const s = randomVector(n, q);
     
-    // 生成噪声向量 e（高斯分布）
     const e = [];
     for (let i = 0; i < n; i++) {
         e.push(gaussianRandom(0, sigma));
     }
     
-    // 计算 b = A·s + e
     const b = [];
     for (let i = 0; i < n; i++) {
         let sum = 0;
@@ -145,7 +167,7 @@ function lweGenerateKeys() {
     
     lweKeys = { n, q, sigma, A, s, b, e };
     
-    document.getElementById('lwePublicKey').value = `A: ${JSON.stringify(A)}\nb: ${JSON.stringify(b)}`;
+    document.getElementById('lwePublicKey').value = `A: ${JSON.stringify(A)}\n\nb: ${JSON.stringify(b)}`;
     document.getElementById('lwePrivateKey').value = `s: ${JSON.stringify(s)}`;
     
     alert('✅ LWE 密钥对生成成功！');
@@ -156,15 +178,16 @@ function lweEncrypt() {
     if (!lweKeys) { alert('❌ 请先生成密钥对！'); return; }
     
     const input = document.getElementById('lweEncryptInput').value.trim();
-    if (!input) { alert('❌ 请输入明文 (0 或 1)！'); return; }
+    if (input !== '0' && input !== '1') { alert('❌ 明文只能输入 0 或 1！'); return; }
     
     const m = parseInt(input) === 1 ? Math.floor(lweKeys.q / 2) : 0;
     const { n, q, A, b } = lweKeys;
     
-    // 生成随机向量 r
-    const r = randomVector(n, 2);
+    const r = [];
+    for (let i = 0; i < n; i++) {
+        r.push(Math.floor(Math.random() * 2));
+    }
     
-    // u = A^T · r
     const u = [];
     for (let j = 0; j < n; j++) {
         let sum = 0;
@@ -174,7 +197,6 @@ function lweEncrypt() {
         u.push(sum % q);
     }
     
-    // v = b^T · r + m
     let v = 0;
     for (let i = 0; i < n; i++) {
         v += b[i] * r[i];
@@ -196,18 +218,65 @@ function lweDecrypt() {
         const { u, v } = ciphertext;
         const { s, q } = lweKeys;
         
-        // m = v - s^T · u
         let su = 0;
         for (let i = 0; i < s.length; i++) {
             su += s[i] * u[i];
         }
         let m = ((v - su) % q + q) % q;
         
-        // 判断是 0 还是 1
         const decrypted = m > q / 4 ? 1 : 0;
-        document.getElementById('lweDecryptOutput').value = `解密结果: ${decrypted}\n(原始值: ${m})`;
+        document.getElementById('lweDecryptOutput').value = `解密结果: ${decrypted}\n(计算值: ${m}, 阈值: ${Math.floor(q/4)})`;
     } catch (e) {
-        alert('❌ 密文格式错误！');
+        alert('❌ 密文格式错误！请使用 JSON 格式。');
+    }
+}
+
+function lweExportKeys() {
+    if (!lweKeys) { alert('❌ 没有可导出的密钥！'); return; }
+    const keys = { type: 'LWE', ...lweKeys, date: new Date().toISOString() };
+    downloadJSON(keys, 'lwe_keys_' + new Date().toISOString().slice(0,10) + '.json');
+}
+
+function lweImportKeys() {
+    importKeysFromFile((keys) => {
+        if (keys.type !== 'LWE') { alert('❌ 不是 LWE 密钥文件！'); return; }
+        lweKeys = keys;
+        document.getElementById('lweN').value = keys.n;
+        document.getElementById('lweQ').value = keys.q;
+        document.getElementById('lweSigma').value = keys.sigma;
+        document.getElementById('lwePublicKey').value = `A: ${JSON.stringify(keys.A)}\n\nb: ${JSON.stringify(keys.b)}`;
+        document.getElementById('lwePrivateKey').value = `s: ${JSON.stringify(keys.s)}`;
+        alert('✅ LWE 密钥导入成功！');
+    });
+}
+
+// ==================== LWE 过程记录 ====================
+
+function saveLweProcess() {
+    const data = {
+        keyGen: document.getElementById('lweProcessKeyGen').value,
+        encrypt: document.getElementById('lweProcessEncrypt').value,
+        decrypt: document.getElementById('lweProcessDecrypt').value
+    };
+    localStorage.setItem('lweProcess', JSON.stringify(data));
+    alert('✅ LWE 过程记录已保存！');
+}
+
+function loadLweProcess() {
+    const data = JSON.parse(localStorage.getItem('lweProcess') || '{}');
+    if (data.keyGen) document.getElementById('lweProcessKeyGen').value = data.keyGen;
+    if (data.encrypt) document.getElementById('lweProcessEncrypt').value = data.encrypt;
+    if (data.decrypt) document.getElementById('lweProcessDecrypt').value = data.decrypt;
+    alert('📂 LWE 过程记录已加载！');
+}
+
+function clearLweProcess() {
+    if (confirm('确定要清空 LWE 过程记录吗？')) {
+        document.getElementById('lweProcessKeyGen').value = '';
+        document.getElementById('lweProcessEncrypt').value = '';
+        document.getElementById('lweProcessDecrypt').value = '';
+        localStorage.removeItem('lweProcess');
+        alert('🗑️ LWE 过程记录已清空！');
     }
 }
 
@@ -244,18 +313,11 @@ function importKeysFromFile(callback) {
     input.click();
 }
 
-function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('active');
-}
-
 // ==================== 可视化 ====================
-
-let gaussChart = null;
 
 function initGaussChart() {
     const ctx = document.getElementById('gaussChart').getContext('2d');
     
-    // 生成高斯分布数据
     const data = [];
     const labels = [];
     for (let x = -5; x <= 5; x += 0.5) {
@@ -271,21 +333,23 @@ function initGaussChart() {
             datasets: [{
                 label: '标准高斯分布',
                 data: data,
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                borderColor: '#00d9ff',
+                backgroundColor: 'rgba(0, 217, 255, 0.2)',
                 fill: true,
-                tension: 0.4
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#ff6b6b'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: true }
+                legend: { display: true, position: 'top' }
             },
             scales: {
-                x: { title: { display: true, text: 'x' } },
-                y: { title: { display: true, text: '概率密度' } }
+                x: { title: { display: true, text: 'x' }, grid: { color: '#eee' } },
+                y: { title: { display: true, text: '概率密度' }, grid: { color: '#eee' } }
             }
         }
     });
@@ -295,13 +359,13 @@ function generateNoiseVisual() {
     const container = document.getElementById('noiseVisual');
     container.innerHTML = '';
     
-    const sigma = parseFloat(document.getElementById('lweSigma').value) || 2.5;
+    const sigma = parseFloat(document.getElementById('lweSigma').value) || 2.0;
     
     for (let i = 0; i < 50; i++) {
         const bar = document.createElement('div');
         bar.className = 'noise-bar';
         const height = Math.abs(gaussianRandom(0, sigma)) * 5 + 5;
-        bar.style.height = `${Math.min(height, 50)}px`;
+        bar.style.height = `${Math.min(height, 55)}px`;
         container.appendChild(bar);
     }
 }
