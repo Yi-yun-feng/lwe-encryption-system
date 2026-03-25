@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平台简介 - RSA vs LWE 研究平台</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <span class="logo">🔐 <span>RSA</span> vs <span>LWE-RABE</span> 研究平台</span>
+    </nav>
+    
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <a href="index.html">🏠 返回首页</a>
+        <a href="module1_intro.html">📖 平台简介</a>
+        <a href="module2_rsa.html">🔑 RSA 算法研究与实验</a>
+        <a href="module3_lwe.html">🌊 LWE-RABE 算法研究</a>
+        <a href="module4_comparison.html">⚖️ 对比分析与结论</a>
+    </div>
+    
+    <div class="main-content">
+        <div class="module">
+            <h1>📖 平台简介</h1>
+            <p>本平台是一个面向密码学教学与研究的交互式实验平台，旨在深入对比分析传统公钥加密算法 <span class="badge badge-rsa">RSA</span> 与后量子加密算法 <span class="badge badge-lwe">LWE-RABE</span> 的核心原理、实现机制及安全特性。</p>
+            
+            <div class="grid-3" style="margin: 30px 0;">
+                <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 12px;">
+                    <div style="font-size: 60px;">🔐</div>
+                    <h2 style="margin-top: 15px; color: #1565c0;">RSA 加密</h2>
+                    <p style="font-size: 14px; margin-top: 10px;">基于大整数分解难题<br>1977 年提出，应用 40+ 年<br>当前主流公钥加密标准</p>
+                </div>
+                <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #ffebee, #ffcdd2); border-radius: 12px;">
+                    <div style="font-size: 60px;">🌊</div>
+                    <h2 style="margin-top: 15px; color: #c62828;">LWE-RABE 加密</h2>
+                    <p style="font-size: 14px; margin-top: 10px;">基于格问题与属性基加密<br>2021 年博士论文研究成果<br>支持可撤销与细粒度访问控制</p>
+                </div>
+                <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-radius: 12px;">
+                    <div style="font-size: 60px;">📚</div>
+                    <h2 style="margin-top: 15px; color: #e65100;">研究基础</h2>
+                    <p style="font-size: 14px; margin-top: 10px;">西安电子科技大学<br>董星廷博士论文<br>基于格的 RABE 方案</p>
+                </div>
+            </div>
+            
+            <h2>🎯 平台核心功能</h2>
+            <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; margin: 20px 0;">
+                <ul style="margin-left: 25px; line-height: 2.2; color: #555;">
+                    <li><strong>完整的加解密实验环境</strong> — RSA 使用真实加密库，LWE-RABE 提供教学模拟实现</li>
+                    <li><strong>可视化分析工具</strong> — 高斯噪声分布、密钥长度安全演化、性能对比图表</li>
+                    <li><strong>过程记录功能</strong> — 用户可记录实验步骤、参数选择、计算过程，支持保存/加载</li>
+                    <li><strong>深度对比分析</strong> — 从数学基础、安全性、性能、标准化等多维度对比</li>
+                    <li><strong>密钥管理</strong> — 支持密钥生成、导出、导入、清除等完整生命周期管理</li>
+                </ul>
+            </div>
+            
+            <h2>📚 参考论文</h2>
+            <div style="background: linear-gradient(135deg, #f3e5f5, #e1bee7); padding: 25px; border-radius: 10px; border-left: 4px solid #9c27b0;">
+                <p><strong>论文标题：</strong>基于格的可撤销的属性基加密的研究</p>
+                <p><strong>作者：</strong>董星廷</p>
+                <p><strong>指导教师：</strong>胡予濮 教授</p>
+                <p><strong>学校：</strong>西安电子科技大学</p>
+                <p><strong>时间：</strong>2021 年 12 月</p>
+                <p><strong>核心贡献：</strong></p>
+                <ul style="margin-left: 25px; margin-top: 10px; line-height: 2;">
+                    <li>构造了基于格的 RABE 方案（方案 Π）</li>
+                    <li>构造了具有 DKER 安全性的 RABE 方案（方案 Ω）</li>
+                    <li>构造了服务器辅助的 SR-ABE 方案（方案 Σ）</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
