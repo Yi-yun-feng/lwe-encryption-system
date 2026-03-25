@@ -16,10 +16,10 @@
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
     
     <div class="sidebar" id="sidebar">
-        <a href="index.html">🏠 返回首页</a>
+        <a href="index.html">🏠 首页</a>
         <a href="module1_intro.html">📖 平台简介</a>
         <a href="module2_rsa.html">🔑 RSA 算法研究与实验</a>
-        <a href="module3_lwe.html">🌊 LWE-RABE 算法研究</a>
+        <a href="module3_lwe.html">🌊 LWE-RABE 算法研究与实验</a>
         <a href="module4_comparison.html">⚖️ 对比分析与结论</a>
     </div>
     
@@ -28,11 +28,10 @@
             <h1>🌊 LWE-RABE 算法研究与实验</h1>
             <span class="badge badge-lwe">格基加密</span>
             <span class="badge badge-success">抗量子</span>
-            <span class="badge badge-paper">基于博士论文</span>
-            <span class="badge">董星廷，2021</span>
+            <span class="badge">属性基 + 可撤销</span>
             
             <h2>📌 算法原理</h2>
-            <p>本模块基于西安电子科技大学董星廷博士论文《基于格的可撤销的属性基加密的研究》中的 <strong>LWE-RABE 方案</strong> 设计。LWE (Learning With Errors) 基于格问题，支持可撤销和细粒度访问控制。</p>
+            <p>LWE-RABE 结合了 <strong>LWE (Learning With Errors)</strong> 和 <strong>RABE (Revocable Attribute-Based Encryption)</strong> 两种技术。LWE 基于格问题，具有抗量子安全性；RABE 支持细粒度访问控制和用户撤销功能。</p>
             
             <div class="formula-box lwe">
                 <p><strong>【系统参数】</strong></p>
@@ -95,10 +94,11 @@
             </div>
             
             <div style="background: linear-gradient(135deg, #f3e5f5, #e1bee7); padding: 25px; border-radius: 10px; margin-top: 25px; border-left: 4px solid #9c27b0;">
-                <h3>📄 论文核心方案</h3>
-                <p><strong>方案 Π：</strong>基础 RABE 方案（引入 Chen12 撤销机制到 BGG+14 ABE）</p>
-                <p><strong>方案 Ω：</strong>具有 DKER 安全性的 RABE 方案（增加陷门扩展机制）</p>
-                <p><strong>方案 Σ：</strong>服务器辅助的 SR-ABE 方案（减轻用户密钥存储和计算负担）</p>
+                <h3>📄 技术说明</h3>
+                <p><strong>LWE 基础：</strong> 基于格问题的 Learning With Errors 假设，目前无已知量子攻击算法。</p>
+                <p><strong>ABE 扩展：</strong> 在 LWE 基础上引入属性基访问控制，支持策略加密。</p>
+                <p><strong>撤销机制：</strong> 采用树结构或时间戳方式实现用户撤销功能。</p>
+                <p style="margin-top: 15px; font-size: 13px; color: #666;">本模块为教学演示版本，实际部署需参考完整学术方案及安全实现。</p>
             </div>
         </div>
     </div>
