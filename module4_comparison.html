@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对比分析 - RSA vs LWE 研究平台</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <span class="logo">🔐 <span>RSA</span> vs <span>LWE-RABE</span> 研究平台</span>
+    </nav>
+    
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <a href="index.html">🏠 返回首页</a>
+        <a href="module1_intro.html">📖 平台简介</a>
+        <a href="module2_rsa.html">🔑 RSA 算法研究与实验</a>
+        <a href="module3_lwe.html">🌊 LWE-RABE 算法研究</a>
+        <a href="module4_comparison.html">⚖️ 对比分析与结论</a>
+    </div>
+    
+    <div class="main-content">
+        <div class="module">
+            <h1>⚖️ 对比分析与结论</h1>
+            
+            <h2>📊 核心特性对比</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>对比维度</th>
+                        <th><span class="badge badge-rsa">RSA</span></th>
+                        <th><span class="badge badge-lwe">LWE-RABE</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>数学基础</strong></td>
+                        <td>大整数分解问题</td>
+                        <td>格问题 (LWE)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>提出时间</strong></td>
+                        <td>1977 年</td>
+                        <td>2021 年 (论文)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>抗量子性</strong></td>
+                        <td><span class="badge badge-warning">❌ 不抗量子</span></td>
+                        <td><span class="badge badge-success">✅ 抗量子</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>访问控制</strong></td>
+                        <td>❌ 不支持</td>
+                        <td>✅ 细粒度属性基访问控制</td>
+                    </tr>
+                    <tr>
+                        <td><strong>可撤销性</strong></td>
+                        <td>❌ 需额外机制</td>
+                        <td>✅ 原生支持用户撤销</td>
+                    </tr>
+                    <tr>
+                        <td><strong>密钥大小</strong></td>
+                        <td>较小 (256-512 字节)</td>
+                        <td>较大 (数千字节)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>安全性证明</strong></td>
+                        <td>经验安全</td>
+                        <td>可证明安全 (IND-CPA)</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h2>🎯 研究结论</h2>
+            <div style="background: linear-gradient(135deg, #fff3cd, #ffe082); padding: 30px; border-radius: 12px; border-left: 5px solid #ffc107; margin: 25px 0;">
+                <ul style="margin-left: 25px; line-height: 2.2; color: #555;">
+                    <li><strong>短期：</strong>RSA 仍可安全使用，但应关注后量子迁移</li>
+                    <li><strong>中期：</strong>采用混合加密方案 (RSA + LWE)</li>
+                    <li><strong>长期：</strong>全面迁移到后量子密码标准</li>
+                    <li><strong>高级应用：</strong>LWE-RABE 适合需要细粒度访问控制和用户撤销的场景</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
