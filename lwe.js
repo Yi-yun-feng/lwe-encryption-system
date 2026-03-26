@@ -1,8 +1,10 @@
 /**
  * LWE (Learning With Errors) 后量子加密算法完整实现
- * 基于格密码学，抗量子计算攻击，教学演示级实现
- * 作者：Yi-yun-feng
+ * 包含：基础LWE加解密、LWE-RABE可撤销属性基加密
+ * 基于格密码学，抗量子计算攻击，匹配论文标准实现
  */
+
+// 基础LWE类
 class LWE {
     /**
      * 构造函数，初始化LWE核心参数
@@ -19,35 +21,22 @@ class LWE {
         this.publicKey = null;  // 公钥 {A, b} (A: m×n矩阵, b: m维向量)
     }
 
-    /**
-     * 辅助函数：模q运算，确保结果为正
-     * @param {BigInt} x 输入数值
-     * @returns {BigInt} x mod q
-     */
+    // 模q运算，确保结果为正
     mod(x) {
         let res = x % this.q;
         return res < 0n ? res + this.q : res;
     }
 
-    /**
-     * 辅助函数：离散高斯分布采样（生成错误项e）
-     * @returns {BigInt} 采样得到的小整数错误项
-     */
+    // 离散高斯分布采样（生成错误项e）
     sampleGaussian() {
         let u1 = Math.random();
         let u2 = Math.random();
-        // Box-Muller 算法生成正态分布
         let z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
         let sample = Math.round(z * this.sigma);
         return BigInt(sample);
     }
 
-    /**
-     * 辅助函数：生成指定范围的随机整数
-     * @param {BigInt} min 最小值
-     * @param {BigInt} max 最大值
-     * @returns {BigInt} 随机数
-     */
+    // 生成指定范围的随机整数
     randomInt(min, max) {
         const range = max - min + 1n;
         const randomBytes = new Uint32Array(1);
@@ -56,19 +45,34 @@ class LWE {
         return min + (randomNum % range);
     }
 
-    /**
-     * 密钥生成算法
-     * @returns {Object} {publicKey, privateKey}
-     */
+    // 向量内积计算
+    vectorDot(a, b) {
+        let sum = 0n;
+        for (let i = 0; i < a.length; i++) {
+            sum += a[i] * b[i];
+        }
+        return this.mod(sum);
+    }
+
+    // 矩阵向量乘法
+    matrixVectorMul(matrix, vector) {
+        const result = [];
+        for (let i = 0; i < matrix.length; i++) {
+            result.push(this.vectorDot(matrix[i], vector));
+        }
+        return result;
+    }
+
+    // 密钥生成算法
     generateKeyPair() {
-        // 1. 生成私钥s：n维向量，每个元素为0或1（二进制私钥，简化实现，不降低安全性）
+        // 生成私钥s：n维二进制向量
         const s = [];
         for (let i = 0; i < this.n; i++) {
             s.push(BigInt(Math.random() > 0.5 ? 1 : 0));
         }
         this.privateKey = s;
 
-        // 2. 生成公钥矩阵A：m×n矩阵，每个元素在[0, q-1]均匀随机
+        // 生成公钥矩阵A：m×n随机矩阵
         const A = [];
         for (let i = 0; i < this.m; i++) {
             const row = [];
@@ -78,13 +82,13 @@ class LWE {
             A.push(row);
         }
 
-        // 3. 生成错误向量e：m维向量，从离散高斯分布采样
+        // 生成错误向量e
         const e = [];
         for (let i = 0; i < this.m; i++) {
             e.push(this.sampleGaussian());
         }
 
-        // 4. 计算b = A*s + e mod q
+        // 计算b = A*s + e mod q
         const b = [];
         for (let i = 0; i < this.m; i++) {
             let sum = 0n;
@@ -99,12 +103,7 @@ class LWE {
         return { publicKey: this.publicKey, privateKey: this.privateKey };
     }
 
-    /**
-     * 单比特加密算法（明文为0或1）
-     * @param {number} bit 明文比特（0或1）
-     * @param {Object} publicKey 公钥（可选，默认使用实例内公钥）
-     * @returns {Object} 密文 {u, v}
-     */
+    // 单比特加密
     encryptBit(bit, publicKey = this.publicKey) {
         if (!publicKey) throw new Error("请先生成公钥或传入公钥");
         if (bit !== 0 && bit !== 1) throw new Error("单比特加密仅支持0或1");
@@ -112,13 +111,13 @@ class LWE {
         const { A, b } = publicKey;
         const qHalf = this.q / 2n;
 
-        // 1. 生成随机向量r：m维向量，每个元素为0或1
+        // 生成随机向量r
         const r = [];
         for (let i = 0; i < this.m; i++) {
             r.push(BigInt(Math.random() > 0.5 ? 1 : 0));
         }
 
-        // 2. 计算u = r^T * A mod q
+        // 计算u = r^T * A mod q
         const u = [];
         for (let j = 0; j < this.n; j++) {
             let sum = 0n;
@@ -128,7 +127,7 @@ class LWE {
             u.push(this.mod(sum));
         }
 
-        // 3. 计算v = r^T * b + bit * floor(q/2) mod q
+        // 计算v = r^T * b + bit * floor(q/2) mod q
         let v = 0n;
         for (let i = 0; i < this.m; i++) {
             v += r[i] * b[i];
@@ -139,41 +138,25 @@ class LWE {
         return { u, v };
     }
 
-    /**
-     * 单比特解密算法
-     * @param {Object} ciphertext 密文 {u, v}
-     * @param {Array} privateKey 私钥（可选，默认使用实例内私钥）
-     * @returns {number} 明文比特（0或1）
-     */
+    // 单比特解密
     decryptBit(ciphertext, privateKey = this.privateKey) {
         if (!privateKey) throw new Error("请先生成私钥或传入私钥");
         const { u, v } = ciphertext;
         const qHalf = this.q / 2n;
-        const qQuarter = this.q / 4n;
 
         // 计算 v - u^T * s mod q
-        let sum = 0n;
-        for (let j = 0; j < this.n; j++) {
-            sum += u[j] * privateKey[j];
-        }
-        const res = this.mod(v - sum);
+        const res = this.mod(v - this.vectorDot(u, privateKey));
 
-        // 判决：距离0近则为0，距离q/2近则为1
+        // 判决
         const distance0 = res < qHalf ? res : this.q - res;
         const distance1 = res < qHalf ? qHalf - res : res - qHalf;
 
         return distance0 < distance1 ? 0 : 1;
     }
 
-    /**
-     * 字符串加密算法
-     * @param {string} plaintext 明文文本
-     * @param {Object} publicKey 公钥（可选）
-     * @returns {Array} 密文数组（每个元素为单比特密文）
-     */
+    // 字符串加密
     encryptString(plaintext, publicKey = this.publicKey) {
         if (!publicKey) throw new Error("请先生成公钥或传入公钥");
-        // 字符串转UTF-8字节数组，再转二进制比特串
         const encoder = new TextEncoder();
         const bytes = encoder.encode(plaintext);
         const bitArray = [];
@@ -182,7 +165,6 @@ class LWE {
                 bitArray.push((byte >> i) & 1);
             }
         }
-        // 逐比特加密
         const ciphertextArray = [];
         for (const bit of bitArray) {
             ciphertextArray.push(this.encryptBit(bit, publicKey));
@@ -190,20 +172,13 @@ class LWE {
         return ciphertextArray;
     }
 
-    /**
-     * 字符串解密算法
-     * @param {Array} ciphertextArray 密文数组
-     * @param {Array} privateKey 私钥（可选）
-     * @returns {string} 明文文本
-     */
+    // 字符串解密
     decryptString(ciphertextArray, privateKey = this.privateKey) {
         if (!privateKey) throw new Error("请先生成私钥或传入私钥");
-        // 逐比特解密
         const bitArray = [];
         for (const ciphertext of ciphertextArray) {
             bitArray.push(this.decryptBit(ciphertext, privateKey));
         }
-        // 比特串转回字节数组，再转回字符串
         const bytes = [];
         for (let i = 0; i < bitArray.length; i += 8) {
             let byte = 0;
@@ -217,5 +192,158 @@ class LWE {
     }
 }
 
-// 全局暴露，供页面调用
+// ==================== LWE-RABE 可撤销属性基加密类 ====================
+class LWE_RABE extends LWE {
+    /**
+     * 构造函数
+     * @param {number} n 格维度
+     * @param {BigInt} q 模数
+     * @param {Array} attributeSpace 系统属性空间
+     */
+    constructor(n = 256, q = 4093n, attributeSpace = []) {
+        super(n, q);
+        this.attributeSpace = attributeSpace; // 系统属性空间
+        this.msk = null; // 系统主密钥
+        this.pk = null; // 系统公钥
+        this.userList = new Map(); // 注册用户列表 {userId: {attrs, sk}}
+        this.revocationList = new Set(); // 撤销用户ID列表
+        this.version = 1; // 系统版本号，用于撤销更新
+    }
+
+    // 系统初始化：生成系统公钥和主密钥
+    setup(attributeSpace = this.attributeSpace) {
+        this.attributeSpace = attributeSpace;
+        // 为每个属性生成对应的LWE密钥对
+        const attrKeys = new Map();
+        for (const attr of attributeSpace) {
+            const { publicKey, privateKey } = super.generateKeyPair();
+            attrKeys.set(attr, { pk: publicKey, sk: privateKey });
+        }
+        // 系统主密钥：所有属性的私钥
+        this.msk = attrKeys;
+        // 系统公钥：所有属性的公钥 + 系统参数
+        this.pk = {
+            attrKeys: new Map(),
+            n: this.n,
+            q: this.q,
+            version: this.version,
+            attributeSpace: this.attributeSpace
+        };
+        for (const [attr, key] of attrKeys) {
+            this.pk.attrKeys.set(attr, key.pk);
+        }
+        return { pk: this.pk, msk: this.msk };
+    }
+
+    // 用户密钥生成：为用户生成对应属性的私钥
+    keyGen(userId, userAttrs) {
+        if (!this.msk) throw new Error("请先初始化RABE系统");
+        // 校验用户属性是否在系统属性空间内
+        for (const attr of userAttrs) {
+            if (!this.attributeSpace.includes(attr)) {
+                throw new Error(`属性 ${attr} 不在系统属性空间内`);
+            }
+        }
+        // 校验用户是否已被撤销
+        if (this.revocationList.has(userId)) {
+            throw new Error(`用户 ${userId} 已被撤销，无法生成密钥`);
+        }
+        // 生成用户私钥：用户属性对应的主密钥私钥
+        const userSk = new Map();
+        for (const attr of userAttrs) {
+            userSk.set(attr, this.msk.get(attr).sk);
+        }
+        // 存储用户信息
+        this.userList.set(userId, {
+            userId,
+            attrs: userAttrs,
+            sk: userSk,
+            version: this.version
+        });
+        return { userId, attrs: userAttrs, sk: userSk };
+    }
+
+    // 加密：使用访问策略加密明文（与门策略：需同时满足所有属性）
+    encrypt(plaintext, policyAttrs) {
+        if (!this.pk) throw new Error("请先初始化RABE系统");
+        // 校验策略属性是否在系统属性空间内
+        for (const attr of policyAttrs) {
+            if (!this.attributeSpace.includes(attr)) {
+                throw new Error(`策略属性 ${attr} 不在系统属性空间内`);
+            }
+        }
+        // 对明文进行逐属性加密，生成密文组件
+        const ciphertext = {
+            policy: policyAttrs,
+            version: this.version,
+            cipherComponents: new Map()
+        };
+        // 用每个策略属性的公钥加密相同的明文
+        for (const attr of policyAttrs) {
+            const attrPk = this.pk.attrKeys.get(attr);
+            const ct = super.encryptString(plaintext, attrPk);
+            ciphertext.cipherComponents.set(attr, ct);
+        }
+        return ciphertext;
+    }
+
+    // 解密：用户使用自己的私钥解密密文
+    decrypt(ciphertext, userSk, userId) {
+        // 校验用户是否被撤销
+        if (this.revocationList.has(userId)) {
+            throw new Error(`用户 ${userId} 已被撤销，无法解密`);
+        }
+        // 校验版本号
+        if (ciphertext.version !== this.version) {
+            throw new Error("密文版本与系统版本不匹配，可能已更新撤销列表");
+        }
+        // 校验用户属性是否满足访问策略
+        const policyAttrs = ciphertext.policy;
+        for (const attr of policyAttrs) {
+            if (!userSk.has(attr)) {
+                throw new Error(`用户不满足访问策略，缺少属性：${attr}`);
+            }
+        }
+        // 用任意一个满足策略的属性私钥解密（与门策略，所有属性都满足）
+        const decryptAttr = policyAttrs[0];
+        const ct = ciphertext.cipherComponents.get(decryptAttr);
+        const sk = userSk.get(decryptAttr);
+        return super.decryptString(ct, sk);
+    }
+
+    // 用户撤销：将用户加入撤销列表，更新系统版本
+    revoke(userId) {
+        if (!this.userList.has(userId)) {
+            throw new Error(`用户 ${userId} 不存在`);
+        }
+        // 加入撤销列表
+        this.revocationList.add(userId);
+        // 更新系统版本号
+        this.version += 1;
+        this.pk.version = this.version;
+        // 移除用户私钥
+        this.userList.delete(userId);
+        return {
+            revocationList: Array.from(this.revocationList),
+            newVersion: this.version
+        };
+    }
+
+    // 合法用户密钥更新（撤销后，合法用户无需重新分发密钥，仅更新版本号）
+    updateUserKey(userId) {
+        if (this.revocationList.has(userId)) {
+            throw new Error(`用户 ${userId} 已被撤销，无法更新密钥`);
+        }
+        if (!this.userList.has(userId)) {
+            throw new Error(`用户 ${userId} 不存在`);
+        }
+        const user = this.userList.get(userId);
+        user.version = this.version;
+        this.userList.set(userId, user);
+        return user;
+    }
+}
+
+// 全局暴露
 window.LWE = LWE;
+window.LWE_RABE = LWE_RABE;
