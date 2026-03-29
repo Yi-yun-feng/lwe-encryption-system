@@ -3,106 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LWE-RABE 算法 - RSA vs LWE 研究平台</title>
+    <title>LWE-RABE 算法实验 | 大创项目平台</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <nav class="navbar">
         <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-        <span class="logo">🔐 <span>RSA</span> vs <span>LWE-RABE</span> 研究平台</span>
+        <span class="logo">🔐 <span>后量子密码学</span> 研究平台（大创项目）</span>
     </nav>
-    
+
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-    
+
     <div class="sidebar" id="sidebar">
-        <a href="index.html">🏠 首页</a>
-        <a href="module1_intro.html">📖 平台简介</a>
-        <a href="module2_rsa.html">🔑 RSA 算法研究与实验</a>
-        <a href="module3_lwe.html">🌊 LWE-RABE 算法研究与实验</a>
-        <a href="module4_comparison.html">⚖️ 对比分析与结论</a>
+        <a href="index.html">🏠 项目主页</a>
+        <a href="module1_intro.html">📋 平台介绍（大创背景）</a>
+        <a href="module2_rsa.html">🔑 RSA 算法（加密/解密/可视化）</a>
+        <a href="module3_lwe.html" class="active">🌊 LWE-RABE 算法（噪声/属性/撤销）</a>
+        <a href="module4_comparison.html">📊 对比分析（量化/抗量子/结论）</a>
     </div>
-    
+
     <div class="main-content">
         <div class="module module-lwe">
-            <h1>🌊 LWE-RABE 算法研究与实验</h1>
+            <h1>🌊 LWE-RABE 算法实验（大创项目版）</h1>
             <span class="badge badge-lwe">格基加密</span>
-            <span class="badge badge-success">抗量子</span>
-            <span class="badge">属性基 + 可撤销</span>
-            
-            <h2>📌 算法原理</h2>
-            <p>LWE-RABE 结合了 <strong>LWE (Learning With Errors)</strong> 和 <strong>RABE (Revocable Attribute-Based Encryption)</strong> 两种技术。LWE 基于格问题，具有抗量子安全性；RABE 支持细粒度访问控制和用户撤销功能。</p>
-            
+            <span class="badge badge-success">抗量子（格问题困难性）</span>
+            <span class="badge">参数：n(维度)/q(模数)/σ(噪声)</span>
+            <span class="badge">RABE：属性基+可撤销</span>
+
+            <!-- 算法原理（强化版） -->
+            <h2>1. 算法核心原理</h2>
             <div class="formula-box lwe">
-                <p><strong>【系统参数】</strong></p>
-                <p>n = 维度，q = 模数，χ = 离散高斯噪声分布</p>
-                <br>
-                <p><strong>【Setup】</strong> 生成主公钥 mpk 和主私钥 msk</p>
-                <p><strong>【KeyGen】</strong> 根据用户属性生成用户私钥 sk_id</p>
-                <p><strong>【Encrypt】</strong> 根据访问策略加密消息 m</p>
-                <p><strong>【Decrypt】</strong> 验证属性满足策略后解密</p>
-                <p><strong>【Revoke】</strong> 生成更新密钥撤销用户访问权限</p>
+                <p><strong>LWE 安全性基础：</strong> 学习误差问题（LWE）—— 已知 A∈Z_q^(m×n), b=A·s+e∈Z_q^m（e为高斯噪声），求解 s∈Z_2^n 是计算困难的</p>
+                <p><strong>离散高斯噪声：</strong> e ~ D_σ（σ为标准差），噪声是 LWE 安全性的核心，过小易被破解，过大导致解密错误</p>
+                <p><strong>RABE 扩展：</strong> 引入属性集合（如{A,B,C}）和访问策略（如AND(A,B)），仅属性满足策略的用户可解密；支持用户撤销</p>
+                <p><strong>核心公式：</strong></p>
+                <p>• 公钥生成：b = A·s + e mod q</p>
+                <p>• 加密：(u, v) = (r·A mod q, r·b + m·⌊q/2⌋ mod q)（r为随机向量，m为明文）</p>
+                <p>• 解密：m' = sign(v - u·s mod q)（判决规则：距离⌊q/2⌋更近则为1，否则为0）</p>
+                <p>• 撤销：更新系统版本，撤销用户无法获取新版本密钥，失去解密权限</p>
             </div>
-            
-            <h2>🧪 加解密实验台</h2>
+
+            <!-- 核心实验区（参数可调+噪声处理） -->
+            <h2>2. LWE 基础实验（参数可配置）</h2>
             <div class="grid-2">
                 <div>
-                    <h3>⚙️ 参数设置</h3>
-                    <label>维度 n: <input type="number" id="lweN" value="8" min="4" max="16"></label>
-                    <label>模数 q: <input type="number" id="lweQ" value="97" min="17"></label>
-                    <label>噪声 σ: <input type="number" id="lweSigma" value="2.0" step="0.1"></label>
+                    <h3>⚙️ LWE 核心参数配置</h3>
+                    <label>格维度 n：</label>
+                    <input type="number" id="lweN" value="16" min="4" max="64" step="4">
+                    <span style="font-size: 12px; color: #666;">（越大越安全，性能越低）</span>
+                    <br>
+                    <label>模数 q（大质数）：</label>
+                    <input type="number" id="lweQ" value="101" min="17" step="2">
+                    <span style="font-size: 12px; color: #666;">（建议取101/4093/8191）</span>
+                    <br>
+                    <label>噪声标准差 σ：</label>
+                    <input type="number" id="lweSigma" value="2.0" step="0.5" min="0.5" max="5.0">
+                    <span style="font-size: 12px; color: #666;">（噪声强度，影响解密正确率）</span>
                     <br><br>
-                    <button class="btn btn-primary" onclick="lweSetup()">系统初始化</button>
-                    <button class="btn btn-success" onclick="lweKeyGen()">生成用户密钥</button>
-                    <textarea id="lweMpk" placeholder="主公钥 mpk" readonly></textarea>
-                    <textarea id="lweUserKey" placeholder="用户私钥 sk_id" readonly></textarea>
+                    <button class="btn btn-primary" onclick="lweSetup()">🔧 系统初始化（生成msk/mpk）</button>
+                    <button class="btn btn-success" onclick="lweKeyGen()">🔑 生成用户密钥（基于属性）</button>
+                    <br><br>
+                    <label>系统主公钥（mpk）：</label>
+                    <textarea id="lweMpk" placeholder="主公钥将显示在此处" readonly style="height: 100px;"></textarea>
+                    <label>用户私钥（sk_id）：</label>
+                    <textarea id="lweUserKey" placeholder="用户私钥将显示在此处" readonly style="height: 100px;"></textarea>
+                    <div id="lweKeyInfo" style="margin-top: 10px; color: #666; font-size: 13px;"></div>
                 </div>
                 <div>
-                    <h3>🔐 加密 / 🔓 解密</h3>
-                    <label>访问策略：<input type="text" id="lwePolicy" placeholder="如：AND(A,B)" value="AND(A,B)"></label>
-                    <label>用户属性：<input type="text" id="lweAttrs" placeholder="如：A,B" value="A,B"></label>
-                    <textarea id="lweEncryptInput" placeholder="输入明文 (0 或 1)" style="height: 60px;"></textarea>
-                    <button class="btn btn-primary" onclick="lweEncrypt()">🔒 加密</button>
-                    <textarea id="lweEncryptOutput" placeholder="密文" readonly></textarea>
-                    <textarea id="lweDecryptInput" placeholder="粘贴密文" style="height: 60px;"></textarea>
-                    <button class="btn btn-success" onclick="lweDecrypt()">🔓 解密</button>
-                    <textarea id="lweDecryptOutput" placeholder="解密结果" readonly></textarea>
+                    <h3>🔐 LWE 加解密（属性策略控制）</h3>
+                    <label>访问策略（如：AND(A,B)）：</label>
+                    <input type="text" id="lwePolicy" value="AND(A,B)" placeholder="支持AND/OR，如OR(A,C)">
+                    <br>
+                    <label>用户属性（如：A,B）：</label>
+                    <input type="text" id="lweAttrs" value="A,B" placeholder="逗号分隔，如A,C">
+                    <br>
+                    <label>明文输入（0/1 或字符串）：</label>
+                    <textarea id="lweEncryptInput" placeholder="输入0/1或短字符串（如：LWE 抗量子）"></textarea>
+                    <button class="btn btn-primary" onclick="lweEncrypt()">🔒 加密（策略控制）</button>
+                    <label>密文输出：</label>
+                    <textarea id="lweEncryptOutput" placeholder="加密结果将显示在此处" readonly style="height: 100px;"></textarea>
+                    <label>密文输入（粘贴解密）：</label>
+                    <textarea id="lweDecryptInput" placeholder="粘贴密文进行解密"></textarea>
+                    <button class="btn btn-success" onclick="lweDecrypt()">🔓 解密（验证属性）</button>
+                    <label>解密结果：</label>
+                    <textarea id="lweDecryptOutput" placeholder="解密结果将显示在此处" readonly style="height: 100px;"></textarea>
+                    <div id="lweDecryptInfo" style="margin-top: 10px; color: #666; font-size: 13px;"></div>
                 </div>
             </div>
-            
-            <h2>📊 可视化分析</h2>
+
+            <!-- 噪声分析（核心可视化） -->
+            <h2>3. 离散高斯噪声分析（LWE 核心）</h2>
             <div class="grid-2">
                 <div>
-                    <h3>高斯噪声分布</h3>
+                    <h3>离散高斯噪声分布（σ={{lweSigma}}）</h3>
                     <div class="chart-container">
                         <canvas id="lweGaussChart"></canvas>
                     </div>
+                    <button class="btn btn-primary" onclick="generateLweGaussChart()">🔄 重新生成</button>
+                    <p style="font-size: 12px; color: #666; margin-top: 10px;">• 噪声分布符合高斯分布，σ越大，噪声越分散，解密错误率越高<br>• LWE 安全性依赖噪声的不可区分性，σ需平衡安全性与解密正确率</p>
                 </div>
                 <div>
-                    <h3>噪声采样可视化</h3>
+                    <h3>噪声采样可视化（实时采样）</h3>
                     <div class="noise-visual" id="noiseVisual"></div>
-                    <button class="btn btn-primary" onclick="generateNoiseVisual()">🔄 刷新</button>
+                    <button class="btn btn-primary" onclick="generateNoiseVisual()">🔄 刷新采样</button>
+                    <label>采样次数：</label>
+                    <input type="number" id="noiseSampleCount" value="50" min="10" max="100">
+                    <p style="font-size: 12px; color: #666; margin-top: 10px;">• 每个柱形代表一次噪声采样值，高度对应噪声强度<br>• 采样值集中在0附近，符合离散高斯分布特征</p>
                 </div>
             </div>
-            
-            <div class="process-section lwe">
-                <h3>📝 实验过程记录</h3>
-                <textarea id="lweProcessRecord" placeholder="记录你的 LWE-RABE 实验过程..."></textarea>
-                <button class="btn btn-primary" onclick="saveLweProcess()">💾 保存</button>
-                <button class="btn btn-success" onclick="loadLweProcess()">📂 加载</button>
-                <button class="btn btn-danger" onclick="clearLweProcess()">🗑️ 清空</button>
+
+            <!-- RABE 撤销实验（核心创新点） -->
+            <h2>4. RABE 用户撤销实验</h2>
+            <div style="background: #e8f5e9; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                <h3>📌 可撤销属性基加密验证</h3>
+                <div class="grid-2">
+                    <div>
+                        <label>用户ID列表：</label>
+                        <input type="text" id="lweUserList" value="user1,user2,user3" placeholder="逗号分隔用户ID">
+                        <br>
+                        <label>待撤销用户ID：</label>
+                        <input type="text" id="lweRevokeUser" value="user2" placeholder="如user2">
+                        <br><br>
+                        <button class="btn btn-warning" onclick="lweRevokeUser()">🚫 执行撤销</button>
+                        <button class="btn btn-success" onclick="lweUpdateKeys()">🔄 更新系统密钥</button>
+                        <div id="lweRevokeInfo" style="margin-top: 10px; color: #666; font-size: 13px;"></div>
+                    </div>
+                    <div>
+                        <label>撤销后解密验证（用户2）：</label>
+                        <textarea id="lweRevokeDecryptInput" placeholder="粘贴密文"></textarea>
+                        <button class="btn btn-danger" onclick="lweRevokeDecrypt()">🔓 验证撤销效果</button>
+                        <textarea id="lweRevokeDecryptOutput" placeholder="撤销后解密结果（应为乱码/错误）" readonly style="height: 80px;"></textarea>
+                        <p style="font-size: 12px; color: #666; margin-top: 10px;">• 撤销原理：更新系统公钥，撤销用户无法获取新密钥，解密失败<br>• 创新点：轻量化撤销方案，无需重新生成所有用户密钥</p>
+                    </div>
+                </div>
             </div>
-            
-            <div style="background: linear-gradient(135deg, #f3e5f5, #e1bee7); padding: 25px; border-radius: 10px; margin-top: 25px; border-left: 4px solid #9c27b0;">
-                <h3>📄 技术说明</h3>
-                <p><strong>LWE 基础：</strong> 基于格问题的 Learning With Errors 假设，目前无已知量子攻击算法。</p>
-                <p><strong>ABE 扩展：</strong> 在 LWE 基础上引入属性基访问控制，支持策略加密。</p>
-                <p><strong>撤销机制：</strong> 采用树结构或时间戳方式实现用户撤销功能。</p>
-                <p style="margin-top: 15px; font-size: 13px; color: #666;">本模块为教学演示版本，实际部署需参考完整学术方案及安全实现。</p>
+
+            <!-- 实验过程记录 -->
+            <h2>5. 实验过程记录（大创报告专用）</h2>
+            <div class="process-section lwe">
+                <h3>📝 记录参数/噪声影响/撤销效果</h3>
+                <textarea id="lweProcessRecord" placeholder="示例：
+1. 参数n=16,q=101,σ=2.0：解密正确率100%，噪声分布集中在0±2
+2. 参数n=16,q=101,σ=4.0：解密正确率85%，噪声过大致使判决错误
+3. 撤销user2后：user2解密失败，user1/user3解密正常，撤销成功率100%
+4. 结论：σ需控制在2.0-3.0，平衡安全性与解密正确率"></textarea>
+                <button class="btn btn-primary" onclick="saveLweProcess()">💾 保存记录</button>
+                <button class="btn btn-success" onclick="loadLweProcess()">📂 加载记录</button>
+                <button class="btn btn-danger" onclick="clearLweProcess()">🗑️ 清空记录</button>
+            </div>
+
+            <!-- 实验结论 -->
+            <h2>6. 实验结论思考（大创报告参考）</h2>
+            <div style="background: linear-gradient(135deg, #f3e5f5, #e1bee7); padding: 20px; border-radius: 10px; margin-top: 20px;">
+                <p>• 噪声σ的影响：σ过小易被格基攻击破解，σ过大导致解密错误率上升，最优区间2.0-3.0</p>
+                <p>• 维度n的影响：n越大，格问题越困难，安全性越高，但加解密耗时线性增长</p>
+                <p>• 抗量子性：LWE 基于格问题，目前无量子算法可在多项式时间内破解</p>
+                <p>• RABE 优势：支持细粒度访问控制+用户撤销，适配云环境/物联网场景</p>
             </div>
         </div>
     </div>
-    
+
+    <script src="lwe.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
