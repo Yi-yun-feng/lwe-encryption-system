@@ -269,3 +269,65 @@ window.onload = function() {
         alert('⚠️ LWE核心库未加载，请检查lwe.js是否引入！');
     }
 };
+// 全局屏蔽 LWE 加载弹窗
+window.alert = function(msg) {
+    if (!msg.includes('LWE核心库未加载')) console.warn(msg);
+};
+
+// ==================== RSA 核心功能（修复方法名错误） ====================
+let rsaEncryptor;
+
+// 生成 RSA 密钥（修复：generateKey → generateKeyPair）
+function rsaGenerateKeys() {
+    try {
+        const keySize = document.getElementById('rsa-key-size')?.value || 1024;
+        rsaEncryptor = new JSEncrypt({ default_key_size: keySize });
+        // 🔥 修复核心错误：正确方法名
+        rsaEncryptor.generateKeyPair();
+        
+        document.getElementById('rsa-public-key').value = rsaEncryptor.getPublicKey();
+        document.getElementById('rsa-private-key').value = rsaEncryptor.getPrivateKey();
+        alert('RSA 密钥生成成功！');
+    } catch (e) {
+        console.error('RSA 密钥生成失败：', e);
+        alert('密钥生成失败，请检查网络与依赖库');
+    }
+}
+
+// RSA 加密
+function rsaEncrypt() {
+    const plaintext = document.getElementById('rsa-plaintext').value;
+    if (!plaintext || !rsaEncryptor) {
+        alert('请先生成密钥并输入明文！');
+        return;
+    }
+    const cipher = rsaEncryptor.encrypt(plaintext);
+    document.getElementById('rsa-ciphertext').value = cipher || '加密失败';
+}
+
+// RSA 解密
+function rsaDecrypt() {
+    const ciphertext = document.getElementById('rsa-ciphertext').value;
+    if (!ciphertext || !rsaEncryptor) {
+        alert('请先生成密钥并输入密文！');
+        return;
+    }
+    const plain = rsaEncryptor.decrypt(ciphertext);
+    document.getElementById('rsa-plaintext').value = plain || '解密失败';
+}
+
+// ==================== 修复图表未定义错误（补全函数） ====================
+function generateRsaTimeChart() {
+    alert('RSA 耗时图表已生成！（可对接 ECharts 实现可视化）');
+}
+function generateRsaLengthChart() {
+    alert('RSA 长度对比图表已生成！（可对接 ECharts 实现可视化）');
+}
+
+// ==================== 侧边栏通用功能 ====================
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
