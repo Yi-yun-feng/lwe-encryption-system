@@ -3,78 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>平台简介 - RSA vs LWE 研究平台</title>
+    <title>平台介绍 - 大创项目背景 | RSA vs LWE-RABE</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <nav class="navbar">
         <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-        <span class="logo">🔐 <span>RSA</span> vs <span>LWE-RABE</span> 研究平台</span>
+        <span class="logo">🔐 <span>后量子密码学</span> 研究平台（大创项目）</span>
     </nav>
-    
+
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-    
+
     <div class="sidebar" id="sidebar">
-        <a href="index.html">🏠 首页</a>
-        <a href="module1_intro.html">📖 平台简介</a>
-        <a href="module2_rsa.html">🔑 RSA 算法研究与实验</a>
-        <a href="module3_lwe.html">🌊 LWE-RABE 算法研究与实验</a>
-        <a href="module4_comparison.html">⚖️ 对比分析与结论</a>
+        <a href="index.html">🏠 项目主页</a>
+        <a href="module1_intro.html" class="active">📋 平台介绍（大创背景）</a>
+        <a href="module2_rsa.html">🔑 RSA 算法（加密/解密/可视化）</a>
+        <a href="module3_lwe.html">🌊 LWE-RABE 算法（噪声/属性/撤销）</a>
+        <a href="module4_comparison.html">📊 对比分析（量化/抗量子/结论）</a>
     </div>
-    
+
     <div class="main-content">
         <div class="module">
-            <h1>📖 平台简介</h1>
-            <p>本平台是一个面向密码学教学与研究的交互式实验平台，旨在深入对比分析传统公钥加密算法 <span class="badge badge-rsa">RSA</span> 与后量子加密算法 <span class="badge badge-lwe">LWE-RABE</span> 的核心原理、实现机制及安全特性。</p>
-            
-            <div class="grid-3" style="margin: 30px 0;">
-                <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 12px;">
-                    <div style="font-size: 60px;">🔐</div>
-                    <h2 style="margin-top: 15px; color: #1565c0;">RSA 加密</h2>
-                    <p style="font-size: 14px; margin-top: 10px;">基于大整数分解难题<br>1977 年提出，应用 40+ 年<br>当前主流公钥加密标准</p>
-                </div>
-                <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #ffebee, #ffcdd2); border-radius: 12px;">
-                    <div style="font-size: 60px;">🌊</div>
-                    <h2 style="margin-top: 15px; color: #c62828;">LWE-RABE 加密</h2>
-                    <p style="font-size: 14px; margin-top: 10px;">基于格问题与属性基加密<br>支持可撤销与细粒度访问控制<br>后量子密码学前沿方向</p>
-                </div>
-                <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-radius: 12px;">
-                    <div style="font-size: 60px;">📚</div>
-                    <h2 style="margin-top: 15px; color: #e65100;">研究价值</h2>
-                    <p style="font-size: 14px; margin-top: 10px;">理解传统与后量子密码差异<br>掌握属性基加密核心思想<br>为密码迁移做准备</p>
-                </div>
+            <h1>📋 大创项目平台介绍</h1>
+
+            <!-- 立项背景 -->
+            <h2>1. 立项背景</h2>
+            <div class="formula-box">
+                <p><strong>量子计算威胁：</strong> Shor 算法可在多项式时间内分解大整数，直接破解 RSA 加密体系；Grover 算法可加速暴力破解，降低对称加密安全性。</p>
+                <p><strong>后量子密码学：</strong> NIST 于 2016 年启动后量子密码标准化，LWE（Learning With Errors）因基于格问题的计算困难性，成为核心候选方案。</p>
+                <p><strong>RABE 扩展：</strong> 可撤销属性基加密（Revocable Attribute-Based Encryption）结合 LWE，解决云环境下细粒度访问控制与用户撤销问题。</p>
             </div>
-            
-            <h2>🎯 平台核心功能</h2>
-            <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; margin: 20px 0;">
-                <ul style="margin-left: 25px; line-height: 2.2; color: #555;">
-                    <li><strong>完整的加解密实验环境</strong> — RSA 使用真实加密库，LWE-RABE 提供教学模拟实现</li>
-                    <li><strong>可视化分析工具</strong> — 高斯噪声分布、密钥长度安全演化、性能对比图表</li>
-                    <li><strong>过程记录功能</strong> — 用户可记录实验步骤、参数选择、计算过程，支持保存/加载</li>
-                    <li><strong>深度对比分析</strong> — 从数学基础、安全性、性能、标准化等多维度对比</li>
-                    <li><strong>密钥管理</strong> — 支持密钥生成、导出、导入、清除等完整生命周期管理</li>
+
+            <!-- 研究目标 -->
+            <h2>2. 研究目标</h2>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                <ul style="line-height: 2; color: #333;">
+                    <li>✅ 实现 RSA 与 LWE-RABE 算法的完整工程化演示</li>
+                    <li>✅ 可视化 LWE 离散高斯噪声分布及对加密安全性的影响</li>
+                    <li>✅ 量化对比两种算法在密钥长度、加解密耗时、抗量子性的差异</li>
+                    <li>✅ 验证 LWE-RABE 的属性撤销功能与细粒度访问控制有效性</li>
+                    <li>✅ 形成可复现的实验报告，为后量子密码应用提供参考</li>
                 </ul>
             </div>
-            
-            <h2>📚 技术背景</h2>
-            <div style="background: linear-gradient(135deg, #f3e5f5, #e1bee7); padding: 25px; border-radius: 10px; border-left: 4px solid #9c27b0;">
-                <p><strong>LWE (Learning With Errors)：</strong> 基于格问题的密码学原语，2005 年由 Regev 提出，是目前后量子密码学最活跃的研究方向之一。</p>
-                <p><strong>ABE (Attribute-Based Encryption)：</strong> 属性基加密，支持细粒度访问控制，2005 年由 Sahai 和 Waters 提出。</p>
-                <p><strong>RABE (Revocable ABE)：</strong> 可撤销的属性基加密，在 ABE 基础上增加用户撤销功能，是云计算、物联网等场景的关键技术。</p>
-                <p style="margin-top: 15px; font-size: 13px; color: #666;">本平台 LWE-RABE 模块参考了当前学术界主流方案实现，具体技术细节可参考相关学术论文。</p>
+
+            <!-- 技术路线 -->
+            <h2>3. 技术路线</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>算法层</h3>
+                    <p>• RSA：基于大整数分解，实现密钥生成、加解密、签名验证</p>
+                    <p>• LWE：基于格问题，实现离散高斯噪声采样、密钥生成、加解密</p>
+                    <p>• RABE：扩展 LWE，实现属性策略、用户撤销、访问控制</p>
+                </div>
+                <div>
+                    <h3>应用层</h3>
+                    <p>• 前端可视化：噪声分布、密钥长度对比、性能耗时分析</p>
+                    <p>• 交互实验：参数可调（维度n/模数q/噪声σ）、策略可配置</p>
+                    <p>• 对比分析：量化数据+可视化图表+结论推导</p>
+                </div>
             </div>
-            
-            <h2>📖 使用指南</h2>
-            <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; margin: 20px 0;">
-                <p><strong>步骤 1：</strong> 从左侧导航栏或首页选择要研究的算法模块（RSA 或 LWE-RABE）</p>
-                <p><strong>步骤 2：</strong> 在算法模块中阅读原理介绍，理解数学公式</p>
-                <p><strong>步骤 3：</strong> 在实验区生成密钥、进行加解密操作，观察可视化效果</p>
-                <p><strong>步骤 4：</strong> 在过程记录区填写你的实验步骤和发现</p>
-                <p><strong>步骤 5：</strong> 最后查看对比分析模块，理解两种算法的本质区别</p>
+
+            <!-- 创新点 -->
+            <h2>4. 项目创新点</h2>
+            <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 20px; border-radius: 10px; border-left: 4px solid #00d9ff;">
+                <p><strong>理论创新：</strong> 结合 LWE 与 RABE，提出适用于教学场景的轻量化可撤销属性基加密方案</p>
+                <p><strong>工程创新：</strong> 实现离散高斯噪声的可视化采样，直观展示噪声对 LWE 安全性的影响</p>
+                <p><strong>应用创新：</strong> 提供量化对比工具，支持自定义参数下 RSA/LWE 的性能与安全性分析</p>
+            </div>
+
+            <!-- 使用指南（大创项目级） -->
+            <h2>5. 平台使用指南</h2>
+            <div style="margin-top: 20px;">
+                <ol style="line-height: 2; color: #555; margin-left: 20px;">
+                    <li><strong>模块导航：</strong> 通过左侧导航栏进入对应模块，建议按「RSA → LWE → 对比分析」顺序实验</li>
+                    <li><strong>RSA 实验：</strong> 调整密钥长度（512/1024/2048位），观察加解密耗时与密文长度变化</li>
+                    <li><strong>LWE 实验：</strong> 调整维度n、模数q、噪声σ，分析噪声分布对解密正确率的影响</li>
+                    <li><strong>对比分析：</strong> 选择预设参数或自定义参数，生成量化对比报告</li>
+                    <li><strong>数据记录：</strong> 各模块支持实验过程记录，可保存/加载实验数据用于报告撰写</li>
+                </ol>
             </div>
         </div>
     </div>
-    
+
     <script src="app.js"></script>
 </body>
 </html>
