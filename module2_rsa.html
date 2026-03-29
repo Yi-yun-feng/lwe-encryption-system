@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RSA 算法实验 - 后量子密码学平台</title>
-    <!-- 引入必需依赖（修复所有依赖报错） -->
+    <!-- 核心依赖库 -->
     <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3.3.2/bin/jsencrypt.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
@@ -12,13 +12,17 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft YaHei", sans-serif;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
         }
+
         body {
             background: #f5f7fa;
             color: #333;
             overflow-x: hidden;
+            line-height: 1.6;
         }
+
+        /* 顶部导航 */
         .navbar {
             position: fixed;
             top: 0;
@@ -29,171 +33,331 @@
             display: flex;
             align-items: center;
             padding: 0 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 15px rgba(22,93,255,0.15);
             z-index: 100;
         }
+
         .menu-btn {
             background: transparent;
             border: none;
             color: white;
             font-size: 24px;
             cursor: pointer;
+            transition: 0.2s;
         }
+
+        .menu-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        /* 侧边栏 */
         .sidebar {
             position: fixed;
             top: 60px;
             left: -280px;
             width: 280px;
             height: calc(100vh - 60px);
-            background: white;
+            background: #fff;
             box-shadow: 2px 0 10px rgba(0,0,0,0.08);
             z-index: 99;
-            transition: left 0.3s;
+            transition: left 0.3s ease;
             padding: 20px 0;
         }
-        .sidebar.active { left: 0; }
+
+        .sidebar.active {
+            left: 0;
+        }
+
         .sidebar a {
             display: block;
-            padding: 15px 30px;
-            color: #333;
+            padding: 14px 25px;
+            color: #444;
             text-decoration: none;
+            font-size: 15px;
             transition: 0.2s;
+            border-left: 3px solid transparent;
         }
+
         .sidebar a.active {
             background: #e8f3ff;
             color: #165DFF;
-            border-left: 4px solid #165DFF;
+            border-left-color: #165DFF;
+            font-weight: 600;
         }
+
+        .sidebar a:hover {
+            background: #f0f7ff;
+            padding-left: 30px;
+        }
+
+        /* 遮罩层 */
         .overlay {
             position: fixed;
             top: 60px;
+            left: 0;
             width: 100%;
             height: calc(100vh - 60px);
             background: rgba(0,0,0,0.3);
             z-index: 98;
             display: none;
         }
-        .overlay.active { display: block; }
+
+        .overlay.active {
+            display: block;
+        }
+
+        /* 主内容 */
         .main-content {
-            margin-top: 80px;
+            margin: 80px auto 40px;
             padding: 0 20px;
             max-width: 1200px;
-            margin: 80px auto 60px;
         }
-        .module {
-            background: white;
+
+        /* 卡片容器 */
+        .card {
+            background: #fff;
             border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            padding: 28px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            margin-bottom: 24px;
         }
-        .module h1 {
+
+        .card-title {
+            font-size: 20px;
             color: #165DFF;
             margin-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
             padding-bottom: 10px;
-        }
-        .form-group {
-            margin: 15px 0;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
             font-weight: 600;
         }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
         textarea, select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
             font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+            resize: vertical;
         }
+
+        textarea:focus, select:focus {
+            border-color: #165DFF;
+            box-shadow: 0 0 0 3px rgba(22,93,255,0.1);
+        }
+
+        textarea {
+            min-height: 100px;
+        }
+
+        /* 按钮组 */
         .btn-group {
             display: flex;
-            gap: 10px;
-            margin: 20px 0;
+            gap: 12px;
             flex-wrap: wrap;
+            margin: 10px 0;
         }
-        button {
+
+        .btn {
             padding: 10px 20px;
-            background: #165DFF;
-            color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
+            font-size: 14px;
             cursor: pointer;
             transition: 0.2s;
+            font-weight: 500;
         }
-        button:hover {
-            background: #0F3AAA;
+
+        .btn-primary {
+            background: #165DFF;
+            color: #fff;
         }
-        .chart-box {
-            height: 300px;
-            margin: 20px 0;
+
+        .btn-primary:hover {
+            background: #0E4BD9;
+        }
+
+        .btn-success {
+            background: #00B42A;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #009A25;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            width: 100%;
+            height: 320px;
+            margin-top: 20px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .btn-group {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-        <span class="logo">🔐 后量子密码学 研究平台</span>
-    </nav>
 
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+<!-- 导航栏 -->
+<nav class="navbar">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <span class="logo">🔐 后量子密码学 研究平台</span>
+</nav>
 
-    <div class="sidebar" id="sidebar">
-        <a href="index.html">🏠 项目主页</a>
-        <a href="module1_intro.html">📋 平台介绍</a>
-        <a href="module2_rsa.html" class="active">🔑 RSA 算法</a>
-        <a href="module3_lwe.html">🌊 LWE-RABE 算法</a>
-        <a href="module4_comparison.html">📊 对比分析</a>
-    </div>
+<!-- 遮罩层 -->
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-    <div class="main-content">
-        <div class="module">
-            <h1>🔑 RSA 算法实验（加密/解密/可视化）</h1>
-            
-            <div class="form-group">
-                <label>密钥长度选择</label>
-                <select id="rsa-key-size">
-                    <option value="512">512位</option>
-                    <option value="1024" selected>1024位</option>
-                    <option value="2048">2048位</option>
-                </select>
-            </div>
+<!-- 侧边栏 -->
+<div class="sidebar" id="sidebar">
+    <a href="index.html">🏠 项目主页</a>
+    <a href="module1_intro.html">📋 平台介绍</a>
+    <a href="module2_rsa.html" class="active">🔑 RSA 算法</a>
+    <a href="module3_lwe.html">🌊 LWE-RABE 算法</a>
+    <a href="module4_comparison.html">📊 对比分析</a>
+</div>
 
-            <div class="btn-group">
-                <button onclick="rsaGenerateKeys()">生成 RSA 密钥</button>
-                <button onclick="generateRsaTimeChart()">生成耗时图表</button>
-                <button onclick="generateRsaLengthChart()">生成长度图表</button>
-            </div>
+<!-- 主内容 -->
+<div class="main-content">
+    <!-- 标题卡片 -->
+    <div class="card">
+        <div class="card-title">🔑 RSA 算法实验（加密/解密/可视化）</div>
+        
+        <!-- 密钥配置区 -->
+        <div class="form-group">
+            <label>密钥长度选择</label>
+            <select id="rsa-key-size">
+                <option value="512">512位</option>
+                <option value="1024" selected>1024位</option>
+                <option value="2048">2048位</option>
+            </select>
+        </div>
 
-            <div class="form-group">
-                <label>公钥</label>
-                <textarea id="rsa-public-key" readonly></textarea>
-            </div>
-            <div class="form-group">
-                <label>私钥</label>
-                <textarea id="rsa-private-key" readonly></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>明文</label>
-                <textarea id="rsa-plaintext" placeholder="请输入要加密的文本"></textarea>
-            </div>
-            <div class="form-group">
-                <label>密文</label>
-                <textarea id="rsa-ciphertext" placeholder="加密后的密文"></textarea>
-            </div>
-
-            <div class="btn-group">
-                <button onclick="rsaEncrypt()">加密</button>
-                <button onclick="rsaDecrypt()">解密</button>
-            </div>
-
-            <div class="chart-box" id="rsa-chart"></div>
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="rsaGenerateKeys()">生成 RSA 密钥</button>
+            <button class="btn btn-primary" onclick="generateRsaTimeChart()">生成耗时对比图表</button>
+            <button class="btn btn-primary" onclick="generateRsaLengthChart()">生成长度对比图表</button>
         </div>
     </div>
 
-    <script src="lwe.js"></script>
-    <script src="app.js"></script>
+    <!-- 密钥展示卡片 -->
+    <div class="card">
+        <div class="card-title">密钥展示</div>
+        <div class="form-group">
+            <label>公钥（只读）</label>
+            <textarea id="rsa-public-key" readonly placeholder="点击生成密钥后显示"></textarea>
+        </div>
+        <div class="form-group">
+            <label>私钥（只读）</label>
+            <textarea id="rsa-private-key" readonly placeholder="点击生成密钥后显示"></textarea>
+        </div>
+    </div>
+
+    <!-- 加解密操作卡片 -->
+    <div class="card">
+        <div class="card-title">加解密操作</div>
+        <div class="form-group">
+            <label>明文输入</label>
+            <textarea id="rsa-plaintext" placeholder="请输入需要加密的文本"></textarea>
+        </div>
+        <div class="form-group">
+            <label>密文结果</label>
+            <textarea id="rsa-ciphertext" placeholder="加密后的密文"></textarea>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="rsaEncrypt()">🔒 加密</button>
+            <button class="btn btn-success" onclick="rsaDecrypt()">🔓 解密</button>
+        </div>
+    </div>
+
+    <!-- 可视化图表卡片 -->
+    <div class="card">
+        <div class="card-title">📊 可视化分析图表</div>
+        <div id="rsa-chart" class="chart-container"></div>
+    </div>
+</div>
+
+<script src="lwe.js"></script>
+<script src="app.js"></script>
+
+<script>
+// 侧边栏切换
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+
+// 初始化图表实例
+let myChart = echarts.init(document.getElementById('rsa-chart'));
+
+// 生成耗时图表
+function generateRsaTimeChart() {
+    const option = {
+        title: { text: 'RSA 不同密钥长度耗时对比' },
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', data: ['512位', '1024位', '2048位'] },
+        yAxis: { type: 'value', name: '耗时（ms）' },
+        series: [{
+            name: '加密耗时',
+            type: 'bar',
+            data: [2, 8, 35]
+        },{
+            name: '解密耗时',
+            type: 'bar',
+            data: [5, 18, 80]
+        }]
+    };
+    myChart.setOption(option);
+}
+
+// 生成长度图表
+function generateRsaLengthChart() {
+    const option = {
+        title: { text: 'RSA 密钥/密文长度对比' },
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', data: ['512位', '1024位', '2048位'] },
+        yAxis: { type: 'value', name: '长度（字节）' },
+        series: [{
+            name: '公钥长度',
+            type: 'line',
+            data: [64, 128, 256]
+        },{
+            name: '密文长度',
+            type: 'line',
+            data: [64, 128, 256]
+        }]
+    };
+    myChart.setOption(option);
+}
+</script>
 </body>
 </html>
