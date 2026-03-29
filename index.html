@@ -3,266 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>密码学实验平台</title>
-    <!-- 引入Tailwind CSS用于快速美化UI -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入Font Awesome图标 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style type="text/tailwindcss">
-        @layer utilities {
-            /* 自定义工具类 */
-            .sidebar-transition {
-                transition: transform 0.3s ease-in-out;
-            }
-            .content-fade {
-                transition: opacity 0.4s ease, transform 0.4s ease;
-            }
-            .menu-hover {
-                @apply hover:bg-indigo-100 dark:hover:bg-indigo-900 transition-colors duration-200;
-            }
-        }
-
-        /* 基础样式重置 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            min-height: 100vh;
-            background-color: #f8fafc;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        /* 汉堡导航核心样式 */
-        .sidebar {
-            transform: translateX(-100%);
-            z-index: 50;
-        }
-
-        .sidebar.open {
-            transform: translateX(0);
-        }
-
-        .overlay {
-            display: none;
-            z-index: 40;
-        }
-
-        .overlay.open {
-            display: block;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-    </style>
+    <title>后量子密码学研究平台 - RSA vs LWE-RABE（大创项目）</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark:bg-gray-900 text-gray-800 dark:text-gray-100">
-    <!-- 遮罩层（汉堡菜单展开时显示） -->
-    <div class="overlay fixed inset-0 open:animate-fadeIn" id="overlay"></div>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <span class="logo">🔐 <span>后量子密码学</span> 研究平台（大创项目）</span>
+    </nav>
 
-    <!-- 汉堡导航侧边栏 -->
-    <aside class="sidebar fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg sidebar-transition py-6 px-4">
-        <nav class="flex flex-col gap-2">
-            <h2 class="text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">
-                实验平台导航
-            </h2>
-            <!-- RSA实验导航项 -->
-            <a href="#rsa" class="menu-hover py-2 px-4 rounded-lg flex items-center gap-3 nav-item" data-target="rsa-content">
-                <i class="fa-solid fa-key text-indigo-600 dark:text-indigo-400"></i>
-                <span>RSA 实验</span>
-            </a>
-            <!-- LWE-RABE实验导航项 -->
-            <a href="#lwe-rabe" class="menu-hover py-2 px-4 rounded-lg flex items-center gap-3 nav-item" data-target="lwe-rabe-content">
-                <i class="fa-solid fa-water text-indigo-600 dark:text-indigo-400"></i>
-                <span>LWE-RABE 实验</span>
-            </a>
-            <!-- 对比分析导航项 -->
-            <a href="#compare" class="menu-hover py-2 px-4 rounded-lg flex items-center gap-3 nav-item" data-target="compare-content">
-                <i class="fa-solid fa-scale-balanced text-indigo-600 dark:text-indigo-400"></i>
-                <span>对比分析</span>
-            </a>
-        </nav>
-    </aside>
+    <!-- 遮罩层 -->
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-    <!-- 顶部导航栏（含汉堡按钮） -->
-    <header class="sticky top-0 bg-white dark:bg-gray-800 shadow-sm py-3 px-4 flex items-center justify-between">
-        <!-- 左上角汉堡按钮 -->
-        <button id="hamburger-btn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-            <i class="fa-solid fa-bars text-xl text-indigo-600 dark:text-indigo-400"></i>
-        </button>
-        <h1 class="text-xl font-bold text-indigo-600 dark:text-indigo-400">密码学实验平台</h1>
-        <div class="w-10"></div> <!-- 占位，保持标题居中 -->
-    </header>
+    <!-- 侧边导航（严格拆分模块） -->
+    <div class="sidebar" id="sidebar">
+        <a href="index.html" class="active">🏠 项目主页</a>
+        <a href="module1_intro.html">📋 平台介绍（大创背景）</a>
+        <a href="module2_rsa.html">🔑 RSA 算法（加密/解密/可视化）</a>
+        <a href="module3_lwe.html">🌊 LWE-RABE 算法（噪声/属性/撤销）</a>
+        <a href="module4_comparison.html">📊 对比分析（量化/抗量子/结论）</a>
+    </div>
 
-    <!-- 主内容区域 -->
-    <main class="container mx-auto px-4 py-8 max-w-4xl">
-        <!-- RSA实验内容区（初始隐藏） -->
-        <section id="rsa-content" class="content-fade hidden opacity-0 transform translate-y-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-key text-indigo-600 dark:text-indigo-400"></i>
-                RSA 实验
-            </h2>
-            <div class="text-gray-700 dark:text-gray-300 space-y-4">
-                <p>RSA算法是一种非对称加密算法，由Ron Rivest、Adi Shamir和Leonard Adleman于1977年提出。</p>
-                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <h3 class="font-semibold mb-2">实验功能区</h3>
-                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200">
-                        生成RSA密钥对
-                    </button>
-                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
-                        加密测试
-                    </button>
-                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
-                        解密测试
-                    </button>
+    <!-- 主内容区（大创项目级视觉+内容） -->
+    <div class="main-content">
+        <!-- 项目头图卡片 -->
+        <div class="welcome-card">
+            <h1>后量子密码学：RSA 与 LWE-RABE 对比研究</h1>
+            <p class="subtitle">国家级大学生创新创业训练计划项目 · 密码学方向</p>
+            <div class="project-info">
+                <span class="badge badge-success">项目编号：2024XXXX</span>
+                <span class="badge badge-paper">指导教师：XXX</span>
+                <span class="badge badge-warning">研究周期：2024.03-2024.12</span>
+            </div>
+        </div>
+
+        <!-- 核心模块导航网格（大创项目级排版） -->
+        <div class="module-grid">
+            <!-- 平台介绍模块 -->
+            <a href="module1_intro.html" class="module-card highlight">
+                <div class="module-icon">📋</div>
+                <h3>项目背景与目标</h3>
+                <p>大创项目立项依据、研究目标、技术路线、创新点</p>
+            </a>
+
+            <!-- RSA 模块 -->
+            <a href="module2_rsa.html" class="module-card">
+                <div class="module-icon">🔑</div>
+                <h3>RSA 算法实验</h3>
+                <p>密钥生成 · 加解密 · 大整数分解 · 安全性可视化</p>
+            </a>
+
+            <!-- LWE-RABE 模块 -->
+            <a href="module3_lwe.html" class="module-card">
+                <div class="module-icon">🌊</div>
+                <h3>LWE-RABE 算法实验</h3>
+                <p>离散高斯噪声 · 属性基加密 · 用户撤销 · 格问题可视化</p>
+            </a>
+
+            <!-- 对比分析模块 -->
+            <a href="module4_comparison.html" class="module-card">
+                <div class="module-icon">📊</div>
+                <h3>量化对比与结论</h3>
+                <p>抗量子性 · 性能耗时 · 噪声影响 · 应用场景分析</p>
+            </a>
+        </div>
+
+        <!-- 项目核心价值（大创项目必备） -->
+        <div class="module" style="margin-top: 40px;">
+            <h2>🎯 项目核心价值</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>研究意义</h3>
+                    <p>量子计算的发展对传统 RSA 加密体系构成致命威胁，LWE 作为后量子密码学核心原语，结合 RABE 实现细粒度访问控制与用户撤销，是下一代密码体系的关键方向。</p>
+                    <p>本项目通过可视化实验对比，验证 LWE-RABE 在抗量子性、访问控制灵活性上的优势，为密码体系迁移提供实验依据。</p>
+                </div>
+                <div>
+                    <h3>技术创新</h3>
+                    <ul style="line-height: 1.8; color: #555; margin-left: 20px;">
+                        <li>实现 LWE 离散高斯噪声的可视化采样与分析</li>
+                        <li>融合 RABE 可撤销属性基加密，支持细粒度访问策略</li>
+                        <li>量化对比 RSA/LWE 在不同参数下的性能与安全性</li>
+                        <li>提供可复现的实验环境，适配密码学教学与研究</li>
+                    </ul>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <!-- LWE-RABE实验内容区（初始隐藏） -->
-        <section id="lwe-rabe-content" class="content-fade hidden opacity-0 transform translate-y-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-water text-indigo-600 dark:text-indigo-400"></i>
-                LWE-RABE 实验
-            </h2>
-            <div class="text-gray-700 dark:text-gray-300 space-y-4">
-                <p>LWE（Learning With Errors）是基于格的密码学基础问题，RABE（基于属性的环签名加密）是结合LWE的隐私保护算法。</p>
-                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <h3 class="font-semibold mb-2">实验功能区</h3>
-                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200">
-                        初始化LWE参数
-                    </button>
-                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
-                        RABE签名生成
-                    </button>
-                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
-                        验证签名
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 对比分析内容区（初始隐藏） -->
-        <section id="compare-content" class="content-fade hidden opacity-0 transform translate-y-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-scale-balanced text-indigo-600 dark:text-indigo-400"></i>
-                对比分析
-            </h2>
-            <div class="text-gray-700 dark:text-gray-300 space-y-4">
-                <p>本模块用于对比RSA与LWE-RABE算法在安全性、效率、抗量子攻击能力等维度的差异。</p>
-                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <h3 class="font-semibold mb-2">分析功能区</h3>
-                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200">
-                        性能测试对比
-                    </button>
-                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
-                        安全性分析报告
-                    </button>
-                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
-                        生成对比图表
-                    </button>
-                </div>
-                <!-- 对比表格示例 -->
-                <div class="overflow-x-auto">
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="bg-indigo-50 dark:bg-indigo-900">
-                                <th class="border border-gray-200 dark:border-gray-700 p-2 text-left">维度</th>
-                                <th class="border border-gray-200 dark:border-gray-700 p-2 text-left">RSA</th>
-                                <th class="border border-gray-200 dark:border-gray-700 p-2 text-left">LWE-RABE</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            <tr>
-                                <td class="border border-gray-200 dark:border-gray-700 p-2">抗量子攻击</td>
-                                <td class="border border-gray-200 dark:border-gray-700 p-2">弱（易被量子计算机破解）</td>
-                                <td class="border border-gray-200 dark:border-gray-700 p-2">强（格基问题量子抗性高）</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-200 dark:border-gray-700 p-2">计算效率</td>
-                                <td class="border border-gray-200 dark:border-gray-700 p-2">中（大密钥时效率低）</td>
-                                <td class="border border-gray-200 dark:border-gray-700 p-2">高（轻量级运算）</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- 页脚 -->
-    <footer class="bg-white dark:bg-gray-800 py-4 px-4 text-center text-gray-600 dark:text-gray-400 text-sm border-t border-gray-200 dark:border-gray-700">
-        <p>密码学实验平台 © 2025 保留所有权利</p>
-    </footer>
-
-    <script>
-        // 获取核心元素
-        const hamburgerBtn = document.getElementById('hamburger-btn');
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.getElementById('overlay');
-        const navItems = document.querySelectorAll('.nav-item');
-        const contentSections = document.querySelectorAll('main section');
-
-        // 汉堡按钮点击事件：切换侧边栏和遮罩层
-        hamburgerBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('open');
-            // 阻止页面滚动
-            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
-        });
-
-        // 遮罩层点击事件：关闭侧边栏
-        overlay.addEventListener('click', () => {
-            sidebar.classList.remove('open');
-            overlay.classList.remove('open');
-            document.body.style.overflow = '';
-        });
-
-        // 导航项点击事件：显示对应内容，隐藏其他内容
-        navItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                // 获取目标内容ID
-                const targetId = item.getAttribute('data-target');
-                // 隐藏所有内容
-                contentSections.forEach(section => {
-                    section.classList.add('hidden');
-                    section.classList.remove('opacity-100');
-                    section.classList.add('opacity-0');
-                    section.classList.add('translate-y-2');
-                });
-                // 显示目标内容
-                const targetSection = document.getElementById(targetId);
-                targetSection.classList.remove('hidden');
-                // 延迟添加动画类（触发过渡）
-                setTimeout(() => {
-                    targetSection.classList.remove('opacity-0', 'translate-y-2');
-                    targetSection.classList.add('opacity-100');
-                }, 10);
-                // 移动端自动关闭侧边栏
-                if (window.innerWidth < 768) {
-                    sidebar.classList.remove('open');
-                    overlay.classList.remove('open');
-                    document.body.style.overflow = '';
-                }
-            });
-        });
-
-        // 响应式处理：窗口尺寸变化时关闭侧边栏
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-        });
-
-        // 初始默认显示RSA实验（可选，可根据需求修改）
-        document.addEventListener('DOMContentLoaded', () => {
-            const rsaSection = document.getElementById('rsa-content');
-            rsaSection.classList.remove('hidden', 'opacity-0', 'translate-y-2');
-            rsaSection.classList.add('opacity-100');
-        });
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
