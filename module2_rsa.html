@@ -3,128 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSA 算法实验 | 大创项目平台</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3/bin/jsencrypt.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>RSA 算法实验 - 后量子密码学平台</title>
+    <!-- 引入必需依赖（修复所有依赖报错） -->
+    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3.3.2/bin/jsencrypt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 60px;
+            background: #165DFF;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        .menu-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .sidebar {
+            position: fixed;
+            top: 60px;
+            left: -280px;
+            width: 280px;
+            height: calc(100vh - 60px);
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.08);
+            z-index: 99;
+            transition: left 0.3s;
+            padding: 20px 0;
+        }
+        .sidebar.active { left: 0; }
+        .sidebar a {
+            display: block;
+            padding: 15px 30px;
+            color: #333;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .sidebar a.active {
+            background: #e8f3ff;
+            color: #165DFF;
+            border-left: 4px solid #165DFF;
+        }
+        .overlay {
+            position: fixed;
+            top: 60px;
+            width: 100%;
+            height: calc(100vh - 60px);
+            background: rgba(0,0,0,0.3);
+            z-index: 98;
+            display: none;
+        }
+        .overlay.active { display: block; }
+        .main-content {
+            margin-top: 80px;
+            padding: 0 20px;
+            max-width: 1200px;
+            margin: 80px auto 60px;
+        }
+        .module {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        .module h1 {
+            color: #165DFF;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            background: #165DFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #0F3AAA;
+        }
+        .chart-box {
+            height: 300px;
+            margin: 20px 0;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-        <span class="logo">🔐 <span>后量子密码学</span> 研究平台（大创项目）</span>
+        <span class="logo">🔐 后量子密码学 研究平台</span>
     </nav>
 
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
     <div class="sidebar" id="sidebar">
         <a href="index.html">🏠 项目主页</a>
-        <a href="module1_intro.html">📋 平台介绍（大创背景）</a>
-        <a href="module2_rsa.html" class="active">🔑 RSA 算法（加密/解密/可视化）</a>
-        <a href="module3_lwe.html">🌊 LWE-RABE 算法（噪声/属性/撤销）</a>
-        <a href="module4_comparison.html">📊 对比分析（量化/抗量子/结论）</a>
+        <a href="module1_intro.html">📋 平台介绍</a>
+        <a href="module2_rsa.html" class="active">🔑 RSA 算法</a>
+        <a href="module3_lwe.html">🌊 LWE-RABE 算法</a>
+        <a href="module4_comparison.html">📊 对比分析</a>
     </div>
 
     <div class="main-content">
-        <div class="module module-rsa">
-            <h1>🔑 RSA 算法实验（大创项目版）</h1>
-            <span class="badge badge-rsa">非对称加密</span>
-            <span class="badge badge-warning">不抗量子（Shor算法）</span>
-            <span class="badge">密钥长度：512/1024/2048位</span>
-
-            <!-- 算法原理（强化版） -->
-            <h2>1. 算法核心原理</h2>
-            <div class="formula-box">
-                <p><strong>安全性基础：</strong> 大整数分解问题（IFP）—— 已知 n=pq（p,q为大质数），求解 p/q 是计算困难的</p>
-                <p><strong>密钥生成步骤：</strong></p>
-                <p>1. 随机选择两个不相等的大质数 p, q（建议长度≥512位）</p>
-                <p>2. 计算模数 n = p × q（公钥/私钥共享模数）</p>
-                <p>3. 计算欧拉函数 φ(n) = (p-1)(q-1)（私钥核心参数）</p>
-                <p>4. 选择加密指数 e：1 &lt; e &lt; φ(n) 且 gcd(e,φ(n))=1（通常取 65537）</p>
-                <p>5. 计算解密指数 d：d = e⁻¹ mod φ(n)（私钥核心参数）</p>
-                <p><strong>加密：</strong> c = m^e mod n（m为明文，c为密文）</p>
-                <p><strong>解密：</strong> m = c^d mod n</p>
+        <div class="module">
+            <h1>🔑 RSA 算法实验（加密/解密/可视化）</h1>
+            
+            <div class="form-group">
+                <label>密钥长度选择</label>
+                <select id="rsa-key-size">
+                    <option value="512">512位</option>
+                    <option value="1024" selected>1024位</option>
+                    <option value="2048">2048位</option>
+                </select>
             </div>
 
-            <!-- 核心实验区（参数可调） -->
-            <h2>2. 加解密实验台（参数可配置）</h2>
-            <div class="grid-2">
-                <div>
-                    <h3>⚙️ 密钥参数配置</h3>
-                    <label>密钥长度（位）：</label>
-                    <select id="rsaKeyLength" class="form-control">
-                        <option value="512">512（基础）</option>
-                        <option value="1024" selected>1024（常用）</option>
-                        <option value="2048">2048（安全）</option>
-                    </select>
-                    <br>
-                    <button class="btn btn-primary" onclick="rsaGenerateKeys()">🔑 生成密钥对</button>
-                    <button class="btn btn-success" onclick="rsaExportKeys()">📤 导出密钥</button>
-                    <button class="btn btn-warning" onclick="rsaImportKeys()">📥 导入密钥</button>
-                    <br><br>
-                    <label>公钥（e, n）：</label>
-                    <textarea id="rsaPublicKey" placeholder="公钥将显示在此处" readonly style="height: 120px;"></textarea>
-                    <label>私钥（d, n）：</label>
-                    <textarea id="rsaPrivateKey" placeholder="私钥将显示在此处" readonly style="height: 120px;"></textarea>
-                    <div id="rsaKeyInfo" style="margin-top: 10px; color: #666; font-size: 13px;"></div>
-                </div>
-                <div>
-                    <h3>🔐 加解密操作</h3>
-                    <label>明文输入（支持字符串/数字）：</label>
-                    <textarea id="rsaEncryptInput" placeholder="输入待加密内容（如：大创项目 RSA 实验）"></textarea>
-                    <button class="btn btn-primary" onclick="rsaEncrypt()">🔒 加密</button>
-                    <label>密文输出：</label>
-                    <textarea id="rsaEncryptOutput" placeholder="加密结果将显示在此处" readonly style="height: 100px;"></textarea>
-                    <label>密文输入（粘贴解密）：</label>
-                    <textarea id="rsaDecryptInput" placeholder="粘贴密文进行解密"></textarea>
-                    <button class="btn btn-success" onclick="rsaDecrypt()">🔓 解密</button>
-                    <label>解密结果：</label>
-                    <textarea id="rsaDecryptOutput" placeholder="解密结果将显示在此处" readonly style="height: 100px;"></textarea>
-                    <div id="rsaPerformance" style="margin-top: 10px; color: #666; font-size: 13px;"></div>
-                </div>
+            <div class="btn-group">
+                <button onclick="rsaGenerateKeys()">生成 RSA 密钥</button>
+                <button onclick="generateRsaTimeChart()">生成耗时图表</button>
+                <button onclick="generateRsaLengthChart()">生成长度图表</button>
             </div>
 
-            <!-- 可视化分析（大创项目级） -->
-            <h2>3. 可视化分析</h2>
-            <div class="grid-2">
-                <div>
-                    <h3>密钥长度 vs 加解密耗时</h3>
-                    <div class="chart-container">
-                        <canvas id="rsaTimeChart"></canvas>
-                    </div>
-                    <button class="btn btn-primary" onclick="generateRsaTimeChart()">🔄 重新生成</button>
-                </div>
-                <div>
-                    <h3>密钥长度 vs 密文长度</h3>
-                    <div class="chart-container">
-                        <canvas id="rsaLengthChart"></canvas>
-                    </div>
-                    <button class="btn btn-primary" onclick="generateRsaLengthChart()">🔄 重新生成</button>
-                </div>
+            <div class="form-group">
+                <label>公钥</label>
+                <textarea id="rsa-public-key" readonly></textarea>
+            </div>
+            <div class="form-group">
+                <label>私钥</label>
+                <textarea id="rsa-private-key" readonly></textarea>
             </div>
 
-            <!-- 实验过程记录（大创项目必备） -->
-            <h2>4. 实验过程记录</h2>
-            <div class="process-section">
-                <h3>📝 记录实验参数/现象/结论（用于大创报告）</h3>
-                <textarea id="rsaProcessRecord" placeholder="示例：
-1. 密钥长度512位：加密耗时12ms，密文长度64字节，解密正确率100%
-2. 密钥长度2048位：加密耗时89ms，密文长度256字节，抗暴力破解能力提升
-3. 结论：RSA密钥长度与安全性正相关，但性能呈指数级下降"></textarea>
-                <button class="btn btn-primary" onclick="saveRsaProcess()">💾 保存记录（本地存储）</button>
-                <button class="btn btn-success" onclick="loadRsaProcess()">📂 加载记录</button>
-                <button class="btn btn-danger" onclick="clearRsaProcess()">🗑️ 清空记录</button>
+            <div class="form-group">
+                <label>明文</label>
+                <textarea id="rsa-plaintext" placeholder="请输入要加密的文本"></textarea>
+            </div>
+            <div class="form-group">
+                <label>密文</label>
+                <textarea id="rsa-ciphertext" placeholder="加密后的密文"></textarea>
             </div>
 
-            <!-- 实验结论（引导分析） -->
-            <h2>5. 实验结论思考（大创报告参考）</h2>
-            <div style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); padding: 20px; border-radius: 10px; margin-top: 20px;">
-                <p>• 密钥长度对 RSA 安全性的影响：越长越安全，但性能损耗呈指数级增长</p>
-                <p>• 量子计算威胁：Shor 算法可在 O((log n)³) 时间内分解 n，直接破解 RSA</p>
-                <p>• 应用场景限制：RSA 适合短消息加密（如密钥分发），不适合大数据加密</p>
-                <p>• 对比预期：LWE 算法在抗量子性上具有绝对优势，但参数选择（n/q/σ）对性能影响显著</p>
+            <div class="btn-group">
+                <button onclick="rsaEncrypt()">加密</button>
+                <button onclick="rsaDecrypt()">解密</button>
             </div>
+
+            <div class="chart-box" id="rsa-chart"></div>
         </div>
     </div>
+
     <script src="lwe.js"></script>
     <script src="app.js"></script>
 </body>
