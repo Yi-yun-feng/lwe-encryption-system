@@ -3,500 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>密码学算法对比研究平台</title>
-    <style>
+    <title>密码学实验平台</title>
+    <!-- 引入Tailwind CSS用于快速美化UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style type="text/tailwindcss">
+        @layer utilities {
+            /* 自定义工具类 */
+            .sidebar-transition {
+                transition: transform 0.3s ease-in-out;
+            }
+            .content-fade {
+                transition: opacity 0.4s ease, transform 0.4s ease;
+            }
+            .menu-hover {
+                @apply hover:bg-indigo-100 dark:hover:bg-indigo-900 transition-colors duration-200;
+            }
+        }
+
+        /* 基础样式重置 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft Yahei", sans-serif;
         }
+
         body {
-            background-color: #f5f7fa;
-            padding-bottom: 50px;
+            min-height: 100vh;
+            background-color: #f8fafc;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
-        /* 头部导航 */
-        header {
-            background: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 20px 0;
-            margin-bottom: 30px;
+
+        /* 汉堡导航核心样式 */
+        .sidebar {
+            transform: translateX(-100%);
+            z-index: 50;
         }
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+
+        .sidebar.open {
+            transform: translateX(0);
         }
-        .header-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-        .header-desc {
-            color: #7f8c8d;
-            margin-bottom: 20px;
-        }
-        .nav-tabs {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-        .nav-tab {
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            color: #7f8c8d;
-            transition: all 0.2s;
-        }
-        .nav-tab.active {
-            background-color: #3498db;
-            color: #fff;
-            font-weight: 500;
-        }
-        .nav-tab:hover:not(.active) {
-            background-color: #ecf0f1;
-        }
-        /* 内容容器 */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        .tab-content {
+
+        .overlay {
             display: none;
+            z-index: 40;
         }
-        .tab-content.active {
+
+        .overlay.open {
             display: block;
-        }
-        /* 卡片样式 */
-        .card {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-        /* 表单样式 */
-        .form-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .form-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            color: #2c3e50;
-            font-weight: 500;
-        }
-        .form-input, .form-select, .form-textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #dcdfe6;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .form-textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        /* 按钮样式 */
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .btn-primary {
-            background-color: #3498db;
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background-color: #2980b9;
-        }
-        .btn-success {
-            background-color: #27ae60;
-            color: #fff;
-        }
-        .btn-success:hover {
-            background-color: #219653;
-        }
-        .btn-warning {
-            background-color: #f39c12;
-            color: #fff;
-        }
-        .btn-warning:hover {
-            background-color: #e67e22;
-        }
-        .btn-danger {
-            background-color: #e74c3c;
-            color: #fff;
-        }
-        .btn-danger:hover {
-            background-color: #c0392b;
-        }
-        .btn-block {
-            width: 100%;
-        }
-        /* 代码块 */
-        .code-block {
-            background-color: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 4px;
-            padding: 15px;
-            font-family: monospace;
-            font-size: 13px;
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 300px;
-            overflow-y: auto;
-            color: #2c3e50;
-        }
-        /* 表格 */
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-        }
-        .table th, .table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #e9ecef;
-        }
-        .table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-        }
-        /* 响应式 */
-        @media (max-width: 768px) {
-            .form-row {
-                flex-direction: column;
-            }
+            background-color: rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
-<body>
-    <header>
-        <div class="header-container">
-            <h1 class="header-title">🎓 密码学算法对比研究平台</h1>
-            <p class="header-desc">深入对比分析传统公钥加密算法 RSA 与后量子加密算法 LWE-RABE 的核心原理与实现机制</p>
-            <div class="nav-tabs">
-                <div class="nav-tab active" data-tab="intro">📖 平台简介</div>
-                <div class="nav-tab" data-tab="rsa">🔑 RSA 实验</div>
-                <div class="nav-tab" data-tab="lwe">🌊 LWE-RABE 实验</div>
-                <div class="nav-tab" data-tab="compare">⚖️ 对比分析</div>
-            </div>
-        </div>
+<body class="dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+    <!-- 遮罩层（汉堡菜单展开时显示） -->
+    <div class="overlay fixed inset-0 open:animate-fadeIn" id="overlay"></div>
+
+    <!-- 汉堡导航侧边栏 -->
+    <aside class="sidebar fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg sidebar-transition py-6 px-4">
+        <nav class="flex flex-col gap-2">
+            <h2 class="text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">
+                实验平台导航
+            </h2>
+            <!-- RSA实验导航项 -->
+            <a href="#rsa" class="menu-hover py-2 px-4 rounded-lg flex items-center gap-3 nav-item" data-target="rsa-content">
+                <i class="fa-solid fa-key text-indigo-600 dark:text-indigo-400"></i>
+                <span>RSA 实验</span>
+            </a>
+            <!-- LWE-RABE实验导航项 -->
+            <a href="#lwe-rabe" class="menu-hover py-2 px-4 rounded-lg flex items-center gap-3 nav-item" data-target="lwe-rabe-content">
+                <i class="fa-solid fa-water text-indigo-600 dark:text-indigo-400"></i>
+                <span>LWE-RABE 实验</span>
+            </a>
+            <!-- 对比分析导航项 -->
+            <a href="#compare" class="menu-hover py-2 px-4 rounded-lg flex items-center gap-3 nav-item" data-target="compare-content">
+                <i class="fa-solid fa-scale-balanced text-indigo-600 dark:text-indigo-400"></i>
+                <span>对比分析</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- 顶部导航栏（含汉堡按钮） -->
+    <header class="sticky top-0 bg-white dark:bg-gray-800 shadow-sm py-3 px-4 flex items-center justify-between">
+        <!-- 左上角汉堡按钮 -->
+        <button id="hamburger-btn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+            <i class="fa-solid fa-bars text-xl text-indigo-600 dark:text-indigo-400"></i>
+        </button>
+        <h1 class="text-xl font-bold text-indigo-600 dark:text-indigo-400">密码学实验平台</h1>
+        <div class="w-10"></div> <!-- 占位，保持标题居中 -->
     </header>
 
-    <div class="container">
-        <!-- 平台简介 -->
-        <div class="tab-content active" id="intro">
-            <div class="card">
-                <h2 class="card-title">项目背景</h2>
-                <p>本平台旨在深入对比分析传统公钥加密算法 RSA 与后量子加密算法 LWE-RABE 的核心原理与实现机制。通过交互式实验环境，帮助学习者理解两种算法的数学基础、安全特性及应用场景。</p>
+    <!-- 主内容区域 -->
+    <main class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- RSA实验内容区（初始隐藏） -->
+        <section id="rsa-content" class="content-fade hidden opacity-0 transform translate-y-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-key text-indigo-600 dark:text-indigo-400"></i>
+                RSA 实验
+            </h2>
+            <div class="text-gray-700 dark:text-gray-300 space-y-4">
+                <p>RSA算法是一种非对称加密算法，由Ron Rivest、Adi Shamir和Leonard Adleman于1977年提出。</p>
+                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <h3 class="font-semibold mb-2">实验功能区</h3>
+                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200">
+                        生成RSA密钥对
+                    </button>
+                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
+                        加密测试
+                    </button>
+                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
+                        解密测试
+                    </button>
+                </div>
             </div>
-            <div class="card">
-                <h2 class="card-title">平台特色</h2>
-                <ul style="padding-left: 20px; line-height: 2;">
-                    <li>交互式实验环境 — 可生成密钥、加解密、观察可视化效果</li>
-                    <li>后量子密码支持 — 集成 LWE-RABE 方案，支持属性基访问控制与用户撤销</li>
-                    <li>过程记录功能 — 支持实验过程保存、加载、导出</li>
-                    <li>多维度对比 — 从安全性、性能、密钥大小等角度全面分析</li>
-                </ul>
-            </div>
-            <div class="card">
-                <h2 class="card-title">使用指南</h2>
-                <ol style="padding-left: 20px; line-height: 2;">
-                    <li>通过顶部导航栏切换对应功能模块，每个模块为独立的实验环境</li>
-                    <li>RSA 实验：生成不同长度密钥对，完成文本加解密全流程</li>
-                    <li>LWE-RABE 实验：支持基础LWE加解密、属性基加密、用户撤销全功能</li>
-                    <li>对比分析：查看两种算法的多维度优劣势对比与迁移建议</li>
-                </ol>
-            </div>
-        </div>
+        </section>
 
-        <!-- RSA 实验 -->
-        <div class="tab-content" id="rsa">
-            <div class="card">
-                <h2 class="card-title">1. 密钥对生成</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">密钥长度</label>
-                        <select class="form-select" id="rsa-key-length">
-                            <option value="1024">1024 位</option>
-                            <option value="2048" selected>2048 位</option>
-                            <option value="4096">4096 位</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button class="btn btn-primary btn-block" id="rsa-generate-key">生成 RSA 密钥对</button>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">公钥</label>
-                        <div class="code-block" id="rsa-public-key">点击上方按钮生成密钥对</div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">私钥</label>
-                        <div class="code-block" id="rsa-private-key">点击上方按钮生成密钥对</div>
-                    </div>
+        <!-- LWE-RABE实验内容区（初始隐藏） -->
+        <section id="lwe-rabe-content" class="content-fade hidden opacity-0 transform translate-y-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-water text-indigo-600 dark:text-indigo-400"></i>
+                LWE-RABE 实验
+            </h2>
+            <div class="text-gray-700 dark:text-gray-300 space-y-4">
+                <p>LWE（Learning With Errors）是基于格的密码学基础问题，RABE（基于属性的环签名加密）是结合LWE的隐私保护算法。</p>
+                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <h3 class="font-semibold mb-2">实验功能区</h3>
+                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200">
+                        初始化LWE参数
+                    </button>
+                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
+                        RABE签名生成
+                    </button>
+                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
+                        验证签名
+                    </button>
                 </div>
             </div>
+        </section>
 
-            <div class="card">
-                <h2 class="card-title">2. 加解密实验</h2>
-                <div class="form-group">
-                    <label class="form-label">明文输入</label>
-                    <textarea class="form-textarea" id="rsa-plaintext" placeholder="请输入需要加密的文本内容"></textarea>
+        <!-- 对比分析内容区（初始隐藏） -->
+        <section id="compare-content" class="content-fade hidden opacity-0 transform translate-y-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-scale-balanced text-indigo-600 dark:text-indigo-400"></i>
+                对比分析
+            </h2>
+            <div class="text-gray-700 dark:text-gray-300 space-y-4">
+                <p>本模块用于对比RSA与LWE-RABE算法在安全性、效率、抗量子攻击能力等维度的差异。</p>
+                <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <h3 class="font-semibold mb-2">分析功能区</h3>
+                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200">
+                        性能测试对比
+                    </button>
+                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
+                        安全性分析报告
+                    </button>
+                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 ml-2">
+                        生成对比图表
+                    </button>
                 </div>
-                <div class="form-row" style="margin-top: 15px;">
-                    <button class="btn btn-success" id="rsa-encrypt">RSA 加密</button>
-                    <button class="btn btn-warning" id="rsa-decrypt">RSA 解密</button>
-                </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label class="form-label">密文输出</label>
-                    <div class="code-block" id="rsa-ciphertext">加密结果将显示在这里</div>
-                </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label class="form-label">解密结果</label>
-                    <div class="code-block" id="rsa-decrypt-result">解密结果将显示在这里</div>
+                <!-- 对比表格示例 -->
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-indigo-50 dark:bg-indigo-900">
+                                <th class="border border-gray-200 dark:border-gray-700 p-2 text-left">维度</th>
+                                <th class="border border-gray-200 dark:border-gray-700 p-2 text-left">RSA</th>
+                                <th class="border border-gray-200 dark:border-gray-700 p-2 text-left">LWE-RABE</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr>
+                                <td class="border border-gray-200 dark:border-gray-700 p-2">抗量子攻击</td>
+                                <td class="border border-gray-200 dark:border-gray-700 p-2">弱（易被量子计算机破解）</td>
+                                <td class="border border-gray-200 dark:border-gray-700 p-2">强（格基问题量子抗性高）</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-200 dark:border-gray-700 p-2">计算效率</td>
+                                <td class="border border-gray-200 dark:border-gray-700 p-2">中（大密钥时效率低）</td>
+                                <td class="border border-gray-200 dark:border-gray-700 p-2">高（轻量级运算）</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </section>
+    </main>
 
-            <div class="card">
-                <h2 class="card-title">3. 实验记录</h2>
-                <div class="form-row" style="margin-bottom: 15px;">
-                    <button class="btn btn-outline-secondary" id="rsa-record-clear">清空记录</button>
-                    <button class="btn btn-primary" id="rsa-record-export">导出记录</button>
-                </div>
-                <div class="code-block" id="rsa-record-content">暂无实验记录</div>
-            </div>
-        </div>
+    <!-- 页脚 -->
+    <footer class="bg-white dark:bg-gray-800 py-4 px-4 text-center text-gray-600 dark:text-gray-400 text-sm border-t border-gray-200 dark:border-gray-700">
+        <p>密码学实验平台 © 2025 保留所有权利</p>
+    </footer>
 
-        <!-- LWE-RABE 实验 -->
-        <div class="tab-content" id="lwe">
-            <!-- 基础LWE加解密 -->
-            <div class="card">
-                <h2 class="card-title">基础 LWE 加解密实验</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">格维度 n (安全参数)</label>
-                        <input type="number" class="form-input" id="lwe-param-n" value="256" min="64" max="1024">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">模数 q (大素数)</label>
-                        <input type="number" class="form-input" id="lwe-param-q" value="4093" readonly>
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button class="btn btn-primary btn-block" id="lwe-generate-key">生成 LWE 密钥对</button>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">公钥</label>
-                        <div class="code-block" id="lwe-public-key">点击上方按钮生成密钥对</div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">私钥</label>
-                        <div class="code-block" id="lwe-private-key">点击上方按钮生成密钥对</div>
-                    </div>
-                </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label class="form-label">明文输入</label>
-                    <textarea class="form-textarea" id="lwe-plaintext" placeholder="请输入需要加密的文本内容"></textarea>
-                </div>
-                <div class="form-row" style="margin-top: 15px;">
-                    <button class="btn btn-success" id="lwe-encrypt">LWE 加密</button>
-                    <button class="btn btn-warning" id="lwe-decrypt">LWE 解密</button>
-                </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label class="form-label">密文输出</label>
-                    <div class="code-block" id="lwe-ciphertext">加密结果将显示在这里</div>
-                </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label class="form-label">解密结果</label>
-                    <div class="code-block" id="lwe-decrypt-result">解密结果将显示在这里</div>
-                </div>
-            </div>
+    <script>
+        // 获取核心元素
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlay');
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentSections = document.querySelectorAll('main section');
 
-            <!-- LWE-RABE 可撤销属性基加密 -->
-            <div class="card">
-                <h2 class="card-title">LWE-RABE 可撤销属性基加密实验</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">系统属性空间（用英文逗号分隔）</label>
-                        <input type="text" class="form-input" id="rabe-attrs" value="admin,user,dev,audit,finance" placeholder="例如：admin,user,dev">
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button class="btn btn-primary btn-block" id="rabe-init">初始化 RABE 系统</button>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">系统公钥</label>
-                        <div class="code-block" id="rabe-pk">请先初始化系统</div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">系统主密钥</label>
-                        <div class="code-block" id="rabe-msk">请先初始化系统</div>
-                    </div>
-                </div>
-            </div>
+        // 汉堡按钮点击事件：切换侧边栏和遮罩层
+        hamburgerBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+            // 阻止页面滚动
+            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+        });
 
-            <div class="card">
-                <h2 class="card-title">用户注册与密钥生成</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">用户唯一ID</label>
-                        <input type="text" class="form-input" id="rabe-user-id" value="user001" placeholder="用户唯一标识">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">用户属性（用英文逗号分隔，需在系统属性空间内）</label>
-                        <input type="text" class="form-input" id="rabe-user-attrs" value="user,dev" placeholder="例如：user,dev">
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button class="btn btn-success btn-block" id="rabe-user-gen">生成用户私钥</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">用户私钥</label>
-                    <div class="code-block" id="rabe-user-sk">请先注册用户生成私钥</div>
-                </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label class="form-label">已注册用户列表</label>
-                    <div class="code-block" id="rabe-user-list">暂无注册用户</div>
-                </div>
-            </div>
+        // 遮罩层点击事件：关闭侧边栏
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+        });
 
-            <div class="card">
-                <h2 class="card-title">属性基加密与解密</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">访问策略（需满足的属性，用英文逗号分隔，与门逻辑）</label>
-                        <input type="text" class="form-input" id="rabe-policy" value="user,dev" placeholder="例如：user,dev">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">明文输入</label>
-                    <textarea class="form-textarea" id="rabe-plaintext" placeholder="请输入需要加密的文本内容"></textarea>
-                </div>
-                <div class="form-row" style="margin-top: 15px;">
-                    <button class="btn btn-success" id="rabe-encrypt">RABE 加密</button>
-                    <button class="btn btn-warning" id="rabe-decrypt">RABE 解密</button>
-                </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label class="form-label">密文输出</label>
-                    <div class="code-block" id="rabe-ciphertext">加密结果将显示在这里</div>
-                </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label class="form-label">解密结果</label>
-                    <div class="code-block" id="rabe-decrypt-result">解密结果将显示在这里</div>
-                </div>
-            </div>
+        // 导航项点击事件：显示对应内容，隐藏其他内容
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                // 获取目标内容ID
+                const targetId = item.getAttribute('data-target');
+                // 隐藏所有内容
+                contentSections.forEach(section => {
+                    section.classList.add('hidden');
+                    section.classList.remove('opacity-100');
+                    section.classList.add('opacity-0');
+                    section.classList.add('translate-y-2');
+                });
+                // 显示目标内容
+                const targetSection = document.getElementById(targetId);
+                targetSection.classList.remove('hidden');
+                // 延迟添加动画类（触发过渡）
+                setTimeout(() => {
+                    targetSection.classList.remove('opacity-0', 'translate-y-2');
+                    targetSection.classList.add('opacity-100');
+                }, 10);
+                // 移动端自动关闭侧边栏
+                if (window.innerWidth < 768) {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('open');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
 
-            <div class="card">
-                <h2 class="card-title">用户撤销功能</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">要撤销的用户ID</label>
-                        <input type="text" class="form-input" id="rabe-revoke-id" placeholder="输入要撤销的用户ID">
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button class="btn btn-danger btn-block" id="rabe-revoke">撤销用户</button>
-                    </div>
-                </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label class="form-label">已撤销用户列表</label>
-                    <div class="code-block" id="rabe-revoke-list">暂无撤销用户</div>
-                </div>
-            </div>
+        // 响应式处理：窗口尺寸变化时关闭侧边栏
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+        });
 
-            <div class="card">
-                <h2 class="card-title">实验记录</h2>
-                <div class="form-row" style="margin-bottom: 15px;">
-                    <button class="btn btn-outline-secondary" id="lwe-record-clear">清空记录</button>
-                    <button class="btn btn-primary" id="lwe-record-export">导出记录</button>
-                </div>
-                <div class="code-block" id="lwe-record-content">暂无实验记录</div>
-            </div>
-        </div>
-
-        <!-- 对比分析 -->
-        <div class="tab-content" id="compare">
-            <div class="card">
-                <h2 class="card-title">算法核心参数对比</h2>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>对比维度</th>
-                            <th>RSA 算法</th>
-                            <th>LWE-RABE 算法</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>数学基础</td>
-                            <td>大整数分解难题</td>
-                            <td>格上容错学习难题(LWE)</td>
-                        </tr>
-                        <tr>
-                            <td>抗量子攻击</td>
-                            <td>❌ 量子计算机可通过Shor算法快速破解</td>
-                            <td>✅ 抗量子计算攻击，NIST后量子密码标准核心</td>
-                        </tr>
-                        <tr>
-                            <td>访问控制能力</td>
-                            <td>仅支持一对一加密，无原生访问控制</td>
-                            <td>✅ 支持属性基访问控制，可精细化权限管理</td>
-                        </tr>
-                        <tr>
-                            <td>用户撤销能力</td>
-                            <td>无原生支持，需重新分发密钥</td>
-                            <td>✅ 支持用户即时撤销，无需大规模更新密钥</td>
-                        </tr>
-                        <tr>
-                            <td>密钥尺寸</td>
-                            <td>小(2048位约256字节)</td>
-                            <td>中等(256维度约256KB)</td>
-                        </tr>
-                        <tr>
-                            <td>应用场景</td>
-                            <td>传统HTTPS、数字签名、身份认证</td>
-                            <td>后量子安全通信、云加密、细粒度访问控制、数据共享</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="card">
-                <h2 class="card-title">迁移建议</h2>
-                <ol style="padding-left: 20px; line-height: 2;">
-                    <li>短期：核心系统保留RSA，同时叠加LWE-RABE后量子加密层，实现平滑过渡</li>
-                    <li>中期：高安全需求场景（金融、政务、云数据共享）优先替换为LWE-RABE方案</li>
-                    <li>长期：全面迁移至后量子密码体系，应对量子计算带来的安全威胁</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-
-    <!-- 引入依赖 -->
-    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3.3.2/bin/jsencrypt.min.js"></script>
-    <script src="lwe.js"></script>
-    <script src="app.js"></script>
+        // 初始默认显示RSA实验（可选，可根据需求修改）
+        document.addEventListener('DOMContentLoaded', () => {
+            const rsaSection = document.getElementById('rsa-content');
+            rsaSection.classList.remove('hidden', 'opacity-0', 'translate-y-2');
+            rsaSection.classList.add('opacity-100');
+        });
+    </script>
 </body>
 </html>
