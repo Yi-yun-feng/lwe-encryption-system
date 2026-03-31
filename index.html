@@ -3,100 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>轻量化LWE可搜索加密系统 | 后量子隐私检索</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <title>LWE轻量化可搜索加密系统</title>
+    <!-- MathJax公式渲染 -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-cht.js"></script>
+    <!-- Mermaid流程图渲染 -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- 引入全局样式 -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <!-- 汉堡菜单 -->
+        <input type="checkbox" id="menuToggle" class="menuToggle">
+        <label for="menuToggle" class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </label>
+        <!-- 导航栏内容 -->
+        <div class="navContent">
+            <div class="logo">
+                <h1>LWE-SE</h1>
+            </div>
+            <ul class="navList">
+                <li><a href="#home" onclick="switchPage('home')">首页</a></li>
+                <li><a href="#keyGen" onclick="switchPage('keyGen')">密钥生成</a></li>
+                <li><a href="#encrypt" onclick="switchPage('encrypt')">加密操作</a></li>
+                <li><a href="#search" onclick="switchPage('search')">检索配置</a></li>
+                <li><a href="#storage" onclick="switchPage('storage')">密文存储</a></li>
+                <li><a href="#verify" onclick="switchPage('verify')">检索验证</a></li>
+                <li class="themeToggle" onclick="toggleTheme()">切换主题</li>
+            </ul>
+        </div>
+    </nav>
 
-<div class="topbar">
-    <button class="menu-btn" id="menuToggle"><i class="fas fa-bars"></i></button>
-    <div class="logo">LWE-SE | 轻量可搜索加密</div>
-    <div></div>
-</div>
-
-<!-- 侧边导航（锚点链接） -->
-<div class="sidenav" id="sideNav">
-    <div class="sidenav-header">🔐 导航</div>
-    <a href="#home"><i class="fas fa-home"></i> 平台首页</a>
-    <a href="#keygen"><i class="fas fa-key"></i> 密钥管理</a>
-    <a href="#upload"><i class="fas fa-cloud-upload-alt"></i> 加密上传</a>
-    <a href="#search"><i class="fas fa-search"></i> 密文检索</a>
-    <a href="#compare"><i class="fas fa-chart-line"></i> 性能对比</a>
-</div>
-<div class="overlay" id="overlay"></div>
-
-<main class="container">
-    <!-- 板块1：平台首页 -->
-    <section id="home" class="section">
-        <div class="hero">
-            <div class="badge"><i class="fas fa-shield-alt"></i> 后量子密码学 · 国家级大创</div>
-            <h1>基于LWE的轻量化<br>可搜索加密系统</h1>
-            <p style="font-size:1.1rem;">在密文上直接检索关键词，抵抗量子攻击。轻量化设计适配云端与边缘设备。</p>
-            <div style="margin-top:1.5rem; display:flex; gap:12px;">
-                <button class="btn btn-primary" onclick="document.getElementById('keygen').scrollIntoView({behavior:'smooth'})">开始使用 · 生成密钥</button>
-                <button class="btn btn-outline" onclick="document.getElementById('upload').scrollIntoView({behavior:'smooth'})">加密上传文档</button>
+    <!-- 主要内容区域 -->
+    <div class="mainContent">
+        <!-- 首页内容 -->
+        <div id="home" class="page active">
+            <h2>平台介绍</h2>
+            <div class="introduction">
+                <p>本系统基于LWE(学习与误差)问题实现轻量级可搜索加密，旨在提供安全、高效的加密数据检索解决方案。</p>
+                <div class="features">
+                    <h3>核心特性</h3>
+                    <ul>
+                        <li>基于后量子密码学的LWE问题</li>
+                        <li>轻量级加密算法设计</li>
+                        <li>高效可搜索加密机制</li>
+                        <li>直观友好的用户界面</li>
+                        <li>支持多参数配置与性能对比</li>
+                    </ul>
+                </div>
+                <div class="flowchart">
+                    <div class="mermaid" id=" encryptionFlowchart">
+                    </div>
+                </div>
             </div>
         </div>
-        <h2>核心技术特色</h2>
-        <div class="grid-2">
-            <div class="card"><i class="fas fa-chart-simple"></i><h3>轻量化LWE参数</h3><p>n=256, q≈2^16，128-bit安全，效率提升约50%</p></div>
-            <div class="card"><i class="fas fa-magnifying-glass-chart"></i><h3>可搜索加密</h3><p>支持陷门检索，保护查询隐私</p></div>
-            <div class="card"><i class="fas fa-chart-line"></i><h3>内置性能对比</h3><p>实时对比不同方案的检索效率</p></div>
+
+        <!-- 密钥生成页面 -->
+        <div id="keyGen" class="page">
+            <h2>密钥生成</h2>
+            <div class="keyGeneration">
+                <div class="parameters">
+                    <h3>参数设置</h3>
+                    <div class="paramInput">
+                        <label for="nParam">n(安全维度):</label>
+                        <input type="number" id="nParam" min="1" placeholder="输入n值">
+                    </div>
+                    <div class="paramInput">
+                        <label for="mParam">m(矩阵维度):</label>
+                        <input type="number" id="mParam" min="1" placeholder="输入m值">
+                    </div>
+                    <div class="paramInput">
+                        <label for="qParam">q(模数):</label>
+                        <input type="number" id="qParam" min="2" placeholder="输入q值">
+                    </div>
+                    <div class="paramInput">
+                        <label for="sigmaParam">σ(噪声标准差):</label>
+                        <input type="number" id="sigmaParam" min="0" step="0.1" placeholder="输入σ值">
+                    </div>
+                </div>
+                <div class="formulas">
+                    <h3>核心公式</h3>
+                    <div class="formulaBox">
+                        <p>密钥生成公式: \( s \leftarrow \mathbb{Z}_q^m \), \( A \leftarrow \mathbb{Z}_q^{n \times m} \), \( e \leftarrow \mathcal{D}_\sigma^m \), \( b = A^T s + e \mod q \)"</p>
+                    </div>
+                </div>
+                <button class="generateButton" onclick="generateKeys()">生成密钥</button>
+            </div>
         </div>
-    </section>
 
-    <!-- 板块2：密钥管理 -->
-    <section id="keygen" class="section">
-        <div class="card">
-            <h2>LWE密钥对模拟生成</h2>
-            <button id="doGenKeys" class="btn btn-primary">生成新LWE密钥对</button>
-            <div id="keyStatusArea" class="result-area" style="margin-top:1rem;">⚠️ 未生成密钥</div>
-            <div class="status-msg">实际环境采用Regev加密方案，公钥(A, b)，私钥s。</div>
+        <!-- 加密操作页面 -->
+        <div id="encrypt" class="page">
+            <h2>加密操作</h2>
+            <div class="encryption">
+                <div class="inputArea">
+                    <h3>明文输入</h3>
+                    <textarea id="plaintext" placeholder="输入明文内容..."></textarea>
+                </div>
+                <div class="operation">
+                    <h3>加密操作</h3>
+                    <button class="encryptButton" onclick="encryptText()">加密</button>
+                </div>
+                <div class="ciphertext">
+                    <h3>密文输出</h3>
+                    <div class="ciphertextDisplay" id="ciphertextDisplay"></div>
+                </div>
+            </div>
         </div>
-    </section>
 
-    <!-- 板块3：加密上传 -->
-    <section id="upload" class="section">
-        <div class="card">
-            <h2>加密上传文档</h2>
-            <input type="text" id="docTitle" placeholder="文档标题">
-            <textarea id="docContent" rows="4" placeholder="文档内容"></textarea>
-            <input type="text" id="docKeywords" placeholder="关键词 (英文逗号分隔)">
-            <button id="uploadBtn" class="btn btn-primary">加密并上传</button>
-            <div id="uploadResult" class="result-area"></div>
-            <div class="status-msg">已存储文档: <span id="docCount">0</span></div>
+        <!-- 检索配置页面 -->
+        <div id="search" class="page">
+            <h2>检索配置</h2>
+            <div class="searchConfig">
+                <div class="keywordInput">
+                    <h3>关键词配置</h3>
+                    <input type="text" id="searchKeywords" placeholder="输入检索关键词(用空格分隔)">
+                </div>
+                <div class="indexGeneration">
+                    <h3>索引生成</h3>
+                    <button class="generateIndex" onclick="generateSearchIndex()">生成检索索引</button>
+                </div>
+                <div class="parametersExplanation">
+                    <h3>参数说明</h3>
+                    <p>n: 安全维度参数，值越大安全性越高但计算开销也越大</p>
+                    <p>m: 矩阵维度参数，与n共同决定密钥大小</p>
+                    <p>q: 模数参数，影响加密系统的精度和安全性</p>
+                    <p>σ: 噪声标准差，控制加密噪声的大小，影响安全性</p>
+                </div>
+            </div>
         </div>
-    </section>
 
-    <!-- 板块4：密文检索 -->
-    <section id="search" class="section">
-        <div class="card">
-            <h2>密文检索</h2>
-            <input type="text" id="searchKeyword" placeholder="输入关键词">
-            <button id="searchBtn" class="btn btn-primary">生成陷门并检索</button>
-            <div id="searchResultArea" class="result-area">🔍 检索结果显示于此</div>
+        <!-- 密文存储页面 -->
+        <div id="storage" class="page">
+            <h2>密文存储</h2>
+            <div class="ciphertextStorage">
+                <h3>加密数据列表</h3>
+                <div class="cardGrid" id="ciphertextList"></div>
+            </div>
         </div>
-    </section>
 
-    <!-- 板块5：性能对比 -->
-    <section id="compare" class="section">
-        <div class="card">
-            <h2>性能对比实验</h2>
-            <canvas id="performanceChart" width="400" height="200" style="max-height:320px; width:100%;"></canvas>
-            <button id="runCompare" class="btn btn-primary">更新对比图表</button>
-            <div class="status-msg">* 数据模拟：本方案相比基础LWE检索时间降低约45%</div>
+        <!-- 检索验证页面 -->
+        <div id="verify" class="page">
+            <h2>检索验证</h2>
+            <div class="searchVerification">
+                <div class="searchInput">
+                    <h3>检索输入</h3>
+                    <input type="text" id="verificationKeywords" placeholder="输入验证关键词">
+                </div>
+                <div class="verification">
+                    <h3>检索验证</h3>
+                    <button class="verifyButton" onclick="verifySearch()">验证检索</button>
+                </div>
+                <div class="resultDisplay">
+                    <h3>检索结果</h3>
+                    <div class="resultBox" id="verificationResult"></div>
+                </div>
+            </div>
         </div>
-    </section>
-</main>
+    </div>
 
-<footer>
-    <p>基于LWE的轻量化可搜索加密系统 | 国家级大创项目 · 后量子密码学方向</p>
-    <p>⚡ 演示前端 | 模拟加密检索流程，实际后端将部署于安全服务器</p>
-</footer>
+    <script>
+        // 初始加载加密流程图
+        document.addEventListener('DOMContentLoaded', function() {
+            // 生成加密流程图
+            var flowchartDiv = document.getElementById('encryptionFlowchart');
+            flowchartDiv.innerHTML = `\ngraph TD\n    A[Setup参数(n,m,q)] --> B[密钥生成: s←Z_m^q, e←D_σ]\n    B --> C[加密: c = A·s + e mod q]\n    C --> D[检索配置: 生成加密索引]\n    D --> E[检索: 与密文匹配]\n    E --> F[验证: 检索结果正确性]`;
+            mermaid.render('encryptionFlowchart', flowchartDiv.innerHTML);
 
-<script src="script.js"></script>
+            // 生成SVG参数关系图
+            var.svgParamChart = `\n<svg width="600" height="300" viewBox="0 0 600 300" style="margin: 20px auto;">\n    <!-- X轴 -->\n    <line x1="0" y1="250" x2="600" y2="250" stroke="#000" stroke-width="2"/>\n    <!-- Y轴 -->\n    <line x1="50" y1="0" x2="50" y2="250" stroke="#000" stroke-width="2"/>\n    <!-- σ与安全强度关系曲线 -->\n    <path d="M 50 200 L 150 150 L 250 100 L 350 80 L 450 60 L 550 40" fill="none" stroke="#3498db" stroke-width="2"/>\n    <!-- σ标签 -->\n    <text x="550" y="260" fill="#000">σ(噪声标准差)</text>\n    <!-- 安全强度标签 -->\n    <text x="30" y="20" fill="#000" transform="rotate(270 30 20)">安全强度(%)</text>\n</svg>`;
+            document.getElementById('paramChart').innerHTML =.svgParamChart;
+
+            // 初始化加密流程图
+            mermaid.init();
+        });
+
+        // 页面切换函数
+        function switchPage(pageId) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.display = 'none';
+            });
+
+            // 显示目标页面
+            document.getElementById(pageId).style.display = 'block';
+
+            // 如果是移动端，点击后自动收起菜单
+            const menuToggle = document.getElementById('menuToggle');
+            if (menuToggle && menuToggle.checked) {
+                menuToggle.click();
+            }
+        }
+
+        // 主题切换函数
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+
+            // 保存用户选择的主题到localStorage
+            localStorage.setItem('user-theme', newTheme);
+        }
+
+        // 生成密钥函数(占位)
+        function generateKeys() {
+            alert('密钥生成功能暂未实现，演示用占位功能');
+        }
+
+        // 加密操作函数(占位)
+        function encryptText() {
+            alert('加密功能暂未实现，演示用占位功能');
+        }
+
+        // 生成检索索引函数(占位)
+        function generateSearchIndex() {
+            alert('检索索引生成功能暂未实现，演示用占位功能');
+        }
+
+        // 生成模拟加密数据列表
+        function generateMockCiphertextList() {
+            const list = document.getElementById('ciphertextList');
+            list.innerHTML = '';
+            for (let i = 0; i < 10; i++) {
+                const card = `\n<div class="card" style="margin: 10px;">\n    <div class="cardHeader" style="background-color: var(--primary-color); color: white;">加密数据</div>\n    <div class="cardBody" style="padding: 15px;">\n        <p>数据ID: CT-00${i}</p>\n        <p>加密时间: ${new Date().toLocaleDateString()}</p>\n        <p>安全等级: 高</p>\n    </div>\n</div>`;
+                list.innerHTML += card;
+            }
+        }
+
+        // 生成模拟检索结果(占位)
+        function verifySearch() {
+            alert('检索验证功能暂未实现，演示用占位功能');
+        }
+
+        // 首次加载时生成模拟数据
+        window.onload = function() {
+            generateMockCiphertextList();
+        };
+    </script>
 </body>
 </html>
