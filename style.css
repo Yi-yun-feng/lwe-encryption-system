@@ -94,13 +94,16 @@ body {
     margin: 0 auto;
     padding: 6rem 2rem 3rem;
 }
+.section {
+    scroll-margin-top: 80px;  /* 避免顶部被固定栏遮挡 */
+    margin-bottom: 3rem;
+}
 .card {
     background: white;
     border-radius: 28px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.02);
     border: 1px solid #eef2ff;
     padding: 1.8rem;
-    margin-bottom: 2rem;
 }
 .hero {
     background: linear-gradient(135deg, #f1f5ff 0%, #ffffff 100%);
