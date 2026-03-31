@@ -58,13 +58,8 @@ LWE加密（Regev型）：公钥 (A, b = A·s + e)，密文 (u, v)
 
 前端Web Worker异步加解密
 
-🚀 快速开始
-bash
-git clone https://github.com/Yi-yun-feng/lwe-searchable-encryption.git
-cd lwe-searchable-encryption
-pip install -r requirements.txt
-python app.py
-# 访问 http://localhost:5000
+
+# 访问 https://yi-meng.top/lwe-encryption-system/
 💡 创新点
 轻量化LWE可搜索加密框架：相比基础LWE方案，加密效率提升约50%，检索效率提升约60%。
 
