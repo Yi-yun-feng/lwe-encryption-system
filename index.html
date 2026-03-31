@@ -17,17 +17,80 @@
     <div></div>
 </div>
 
+<!-- 侧边导航（锚点链接） -->
 <div class="sidenav" id="sideNav">
     <div class="sidenav-header">🔐 导航</div>
-    <a href="#" data-nav="home"><i class="fas fa-home"></i> 平台首页</a>
-    <a href="#" data-nav="keygen"><i class="fas fa-key"></i> 密钥管理</a>
-    <a href="#" data-nav="upload"><i class="fas fa-cloud-upload-alt"></i> 加密上传</a>
-    <a href="#" data-nav="search"><i class="fas fa-search"></i> 密文检索</a>
-    <a href="#" data-nav="compare"><i class="fas fa-chart-line"></i> 性能对比</a>
+    <a href="#home"><i class="fas fa-home"></i> 平台首页</a>
+    <a href="#keygen"><i class="fas fa-key"></i> 密钥管理</a>
+    <a href="#upload"><i class="fas fa-cloud-upload-alt"></i> 加密上传</a>
+    <a href="#search"><i class="fas fa-search"></i> 密文检索</a>
+    <a href="#compare"><i class="fas fa-chart-line"></i> 性能对比</a>
 </div>
 <div class="overlay" id="overlay"></div>
 
-<main class="container" id="mainContent"></main>
+<main class="container">
+    <!-- 板块1：平台首页 -->
+    <section id="home" class="section">
+        <div class="hero">
+            <div class="badge"><i class="fas fa-shield-alt"></i> 后量子密码学 · 国家级大创</div>
+            <h1>基于LWE的轻量化<br>可搜索加密系统</h1>
+            <p style="font-size:1.1rem;">在密文上直接检索关键词，抵抗量子攻击。轻量化设计适配云端与边缘设备。</p>
+            <div style="margin-top:1.5rem; display:flex; gap:12px;">
+                <button class="btn btn-primary" onclick="document.getElementById('keygen').scrollIntoView({behavior:'smooth'})">开始使用 · 生成密钥</button>
+                <button class="btn btn-outline" onclick="document.getElementById('upload').scrollIntoView({behavior:'smooth'})">加密上传文档</button>
+            </div>
+        </div>
+        <h2>核心技术特色</h2>
+        <div class="grid-2">
+            <div class="card"><i class="fas fa-chart-simple"></i><h3>轻量化LWE参数</h3><p>n=256, q≈2^16，128-bit安全，效率提升约50%</p></div>
+            <div class="card"><i class="fas fa-magnifying-glass-chart"></i><h3>可搜索加密</h3><p>支持陷门检索，保护查询隐私</p></div>
+            <div class="card"><i class="fas fa-chart-line"></i><h3>内置性能对比</h3><p>实时对比不同方案的检索效率</p></div>
+        </div>
+    </section>
+
+    <!-- 板块2：密钥管理 -->
+    <section id="keygen" class="section">
+        <div class="card">
+            <h2>LWE密钥对模拟生成</h2>
+            <button id="doGenKeys" class="btn btn-primary">生成新LWE密钥对</button>
+            <div id="keyStatusArea" class="result-area" style="margin-top:1rem;">⚠️ 未生成密钥</div>
+            <div class="status-msg">实际环境采用Regev加密方案，公钥(A, b)，私钥s。</div>
+        </div>
+    </section>
+
+    <!-- 板块3：加密上传 -->
+    <section id="upload" class="section">
+        <div class="card">
+            <h2>加密上传文档</h2>
+            <input type="text" id="docTitle" placeholder="文档标题">
+            <textarea id="docContent" rows="4" placeholder="文档内容"></textarea>
+            <input type="text" id="docKeywords" placeholder="关键词 (英文逗号分隔)">
+            <button id="uploadBtn" class="btn btn-primary">加密并上传</button>
+            <div id="uploadResult" class="result-area"></div>
+            <div class="status-msg">已存储文档: <span id="docCount">0</span></div>
+        </div>
+    </section>
+
+    <!-- 板块4：密文检索 -->
+    <section id="search" class="section">
+        <div class="card">
+            <h2>密文检索</h2>
+            <input type="text" id="searchKeyword" placeholder="输入关键词">
+            <button id="searchBtn" class="btn btn-primary">生成陷门并检索</button>
+            <div id="searchResultArea" class="result-area">🔍 检索结果显示于此</div>
+        </div>
+    </section>
+
+    <!-- 板块5：性能对比 -->
+    <section id="compare" class="section">
+        <div class="card">
+            <h2>性能对比实验</h2>
+            <canvas id="performanceChart" width="400" height="200" style="max-height:320px; width:100%;"></canvas>
+            <button id="runCompare" class="btn btn-primary">更新对比图表</button>
+            <div class="status-msg">* 数据模拟：本方案相比基础LWE检索时间降低约45%</div>
+        </div>
+    </section>
+</main>
 
 <footer>
     <p>基于LWE的轻量化可搜索加密系统 | 国家级大创项目 · 后量子密码学方向</p>
